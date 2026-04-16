@@ -1,0 +1,25 @@
+# Binary files
+chatbot
+chatbot.exe
+
+# Checkpoint (learned memory)
+data/memory_checkpoint.gob
+*.gob
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.bak
+.conversations_hash
+.last_build
