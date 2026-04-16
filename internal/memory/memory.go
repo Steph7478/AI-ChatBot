@@ -7,12 +7,15 @@ import (
 	"os"
 	"sort"
 
+	"chatbot/internal/config"
 	"chatbot/internal/dataset"
 )
 
 type ConversationMemory struct {
 	Questions      [][]int
 	Answers        [][]int
+	QuestionText   []string
+	AnswerText     []string
 	Vocab          *dataset.Vocabulary
 	QuestionTF     []map[int]float64
 	IDF            map[int]float64
@@ -23,6 +26,8 @@ func NewConversationMemory(vocab *dataset.Vocabulary) *ConversationMemory {
 	return &ConversationMemory{
 		Questions:      make([][]int, 0),
 		Answers:        make([][]int, 0),
+		QuestionText:   make([]string, 0),
+		AnswerText:     make([]string, 0),
 		Vocab:          vocab,
 		QuestionTF:     make([]map[int]float64, 0),
 		IDF:            make(map[int]float64),
@@ -34,6 +39,9 @@ func (m *ConversationMemory) Learn(questionTokens, answerTokens []int) {
 	m.Questions = append(m.Questions, questionTokens)
 	m.Answers = append(m.Answers, answerTokens)
 
+	m.QuestionText = append(m.QuestionText, m.Vocab.Detokenize(questionTokens))
+	m.AnswerText = append(m.AnswerText, m.Vocab.Detokenize(answerTokens))
+
 	tf := make(map[int]float64)
 	for _, token := range questionTokens {
 		tf[token]++
@@ -44,8 +52,10 @@ func (m *ConversationMemory) Learn(questionTokens, answerTokens []int) {
 			maxFreq = count
 		}
 	}
-	for token := range tf {
-		tf[token] = tf[token] / maxFreq
+	if maxFreq > 0 {
+		for token := range tf {
+			tf[token] = tf[token] / maxFreq
+		}
 	}
 	m.QuestionTF = append(m.QuestionTF, tf)
 }
@@ -61,11 +71,11 @@ func (m *ConversationMemory) CalculateIDF() {
 
 	numDocs := len(m.Questions)
 	for token, count := range docCount {
-		m.IDF[token] = math.Log(float64(numDocs) / float64(count+1))
+		m.IDF[token] = math.Log(float64(numDocs) / (float64(count) + config.IDFSmoothing))
 	}
 }
 
-func (m *ConversationMemory) GetTFIDFVector(tokens []int, questionIdx int) []float64 {
+func (m *ConversationMemory) GetTFIDFVector(tokens []int) []float64 {
 	vector := make([]float64, m.VocabularySize)
 
 	tf := make(map[int]float64)
@@ -78,8 +88,10 @@ func (m *ConversationMemory) GetTFIDFVector(tokens []int, questionIdx int) []flo
 			maxFreq = count
 		}
 	}
-	for token := range tf {
-		tf[token] = tf[token] / maxFreq
+	if maxFreq > 0 {
+		for token := range tf {
+			tf[token] = tf[token] / maxFreq
+		}
 	}
 
 	for token, freq := range tf {
@@ -87,7 +99,7 @@ func (m *ConversationMemory) GetTFIDFVector(tokens []int, questionIdx int) []flo
 		if idf == 0 {
 			idf = 1.0
 		}
-		if token < len(vector) {
+		if token >= 0 && token < len(vector) {
 			vector[token] = freq * idf
 		}
 	}
@@ -117,6 +129,35 @@ func (m *ConversationMemory) CosineSimilarity(vec1, vec2 []float64) float64 {
 	return dot / (math.Sqrt(norm1) * math.Sqrt(norm2))
 }
 
+func (m *ConversationMemory) exactWordMatch(questionTokens []int) (int, float64) {
+	bestIdx := -1
+	bestScore := 0.0
+
+	for i, q := range m.Questions {
+		common := 0
+		seen := make(map[int]bool)
+		for _, token := range questionTokens {
+			for _, qToken := range q {
+				if token == qToken && !seen[token] {
+					common++
+					seen[token] = true
+					break
+				}
+			}
+		}
+
+		if len(questionTokens) > 0 {
+			score := float64(common) / float64(len(questionTokens))
+			if score > bestScore {
+				bestScore = score
+				bestIdx = i
+			}
+		}
+	}
+
+	return bestIdx, bestScore
+}
+
 func (m *ConversationMemory) FindResponse(questionTokens []int, temperature float64) []int {
 	if len(m.Questions) == 0 {
 		return nil
@@ -126,45 +167,28 @@ func (m *ConversationMemory) FindResponse(questionTokens []int, temperature floa
 		m.CalculateIDF()
 	}
 
-	inputVector := m.GetTFIDFVector(questionTokens, -1)
+	exactIdx, exactScore := m.exactWordMatch(questionTokens)
 
-	type similarity struct {
+	inputVector := m.GetTFIDFVector(questionTokens)
+
+	type candidate struct {
 		index int
 		score float64
 	}
 
-	similarities := make([]similarity, len(m.Questions))
-	maxScore := -1.0
+	candidates := make([]candidate, 0)
 
 	for i := 0; i < len(m.Questions); i++ {
-		questionVector := m.GetTFIDFVector(m.Questions[i], i)
-		score := m.CosineSimilarity(inputVector, questionVector)
-		similarities[i] = similarity{index: i, score: score}
-		if score > maxScore {
-			maxScore = score
+		questionVector := m.GetTFIDFVector(m.Questions[i])
+		tfidfScore := m.CosineSimilarity(inputVector, questionVector)
+
+		finalScore := tfidfScore
+		if i == exactIdx && exactScore > config.MinWordMatchScore {
+			finalScore = exactScore * config.ExactMatchBoost
 		}
-	}
 
-	sort.Slice(similarities, func(i, j int) bool {
-		return similarities[i].score > similarities[j].score
-	})
-
-	threshold := 0.3
-	if maxScore < threshold {
-		return nil
-	}
-
-	topK := 3
-	if temperature > 0.7 {
-		topK = 5
-	} else if temperature < 0.3 {
-		topK = 1
-	}
-
-	candidates := make([]similarity, 0)
-	for i := 0; i < len(similarities) && i < topK; i++ {
-		if similarities[i].score > threshold {
-			candidates = append(candidates, similarities[i])
+		if finalScore > config.SimilarityThreshold {
+			candidates = append(candidates, candidate{index: i, score: finalScore})
 		}
 	}
 
@@ -172,11 +196,39 @@ func (m *ConversationMemory) FindResponse(questionTokens []int, temperature floa
 		return nil
 	}
 
-	var selected similarity
-	if temperature > 0.5 && len(candidates) > 1 {
-		probs := make([]float64, len(candidates))
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].score > candidates[j].score
+	})
+
+	bestScore := candidates[0].score
+
+	if bestScore < config.SimilarityThreshold {
+		return nil
+	}
+
+	topK := config.TopKCandidates
+	if temperature > 0.7 {
+		topK = config.TopKTempHigh
+	} else if temperature < 0.3 {
+		topK = config.TopKTempLow
+	}
+
+	filtered := make([]candidate, 0)
+	for _, c := range candidates {
+		if c.score >= bestScore*0.8 && len(filtered) < topK {
+			filtered = append(filtered, c)
+		}
+	}
+
+	if len(filtered) == 0 {
+		filtered = candidates[:min(topK, len(candidates))]
+	}
+
+	var selected candidate
+	if temperature > 0.5 && len(filtered) > 1 {
+		probs := make([]float64, len(filtered))
 		sum := 0.0
-		for i, cand := range candidates {
+		for i, cand := range filtered {
 			probs[i] = math.Exp(cand.score / temperature)
 			sum += probs[i]
 		}
@@ -189,12 +241,12 @@ func (m *ConversationMemory) FindResponse(questionTokens []int, temperature floa
 		for i, p := range probs {
 			cumsum += p
 			if r < cumsum {
-				selected = candidates[i]
+				selected = filtered[i]
 				break
 			}
 		}
 	} else {
-		selected = candidates[0]
+		selected = filtered[0]
 	}
 
 	return m.Answers[selected.index]

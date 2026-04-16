@@ -42,6 +42,18 @@ func (v *Vocabulary) GetID(word string) int {
 	return v.WordToID["<unk>"]
 }
 
+func (v *Vocabulary) Detokenize(tokens []int) string {
+	words := make([]string, 0, len(tokens))
+	for _, id := range tokens {
+		if word, exists := v.IDToWord[id]; exists {
+			if !strings.HasPrefix(word, "<") {
+				words = append(words, word)
+			}
+		}
+	}
+	return strings.Join(words, " ")
+}
+
 type Dataset struct {
 	Conversations [][2][]int
 	Vocab         *Vocabulary
@@ -84,8 +96,8 @@ func (d *Dataset) LoadFromFile(filename string) error {
 				currentBot = ""
 			}
 			currentUser = strings.TrimSpace(strings.TrimPrefix(line, "User:"))
-		} else if strings.HasPrefix(line, "Bot:") {
-			currentBot = strings.TrimSpace(strings.TrimPrefix(line, "Bot:"))
+		} else if after, ok := strings.CutPrefix(line, "Bot:"); ok {
+			currentBot = strings.TrimSpace(after)
 		}
 	}
 
@@ -122,15 +134,7 @@ func (d *Dataset) Tokenize(text string) []int {
 }
 
 func (d *Dataset) Detokenize(tokens []int) string {
-	words := make([]string, 0, len(tokens))
-	for _, id := range tokens {
-		if word, exists := d.Vocab.IDToWord[id]; exists {
-			if !strings.HasPrefix(word, "<") {
-				words = append(words, word)
-			}
-		}
-	}
-	return strings.Join(words, " ")
+	return d.Vocab.Detokenize(tokens)
 }
 
 func tokenizeText(text string) []string {

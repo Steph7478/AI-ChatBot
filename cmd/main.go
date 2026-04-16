@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"chatbot/internal/config"
 	"chatbot/internal/dataset"
 	"chatbot/internal/memory"
 )
@@ -15,10 +16,6 @@ func main() {
 	fmt.Println("===========================================")
 	fmt.Println()
 
-	maxTokens := 30
-	temperature := 0.7
-	checkpointFile := "data/memory_checkpoint.gob"
-
 	vocab := dataset.NewVocabulary()
 	data := dataset.NewDataset(vocab)
 
@@ -27,7 +24,7 @@ func main() {
 	fmt.Println("📀 Checking for saved memory...")
 	mem = memory.NewConversationMemory(vocab)
 
-	if err := mem.Load(checkpointFile); err == nil {
+	if err := mem.Load(config.CheckpointFile); err == nil {
 		fmt.Println("✅ Loaded memory from checkpoint!")
 
 		for word, id := range mem.Vocab.WordToID {
@@ -44,12 +41,12 @@ func main() {
 	} else {
 		fmt.Println("📝 No checkpoint found. Loading from conversations.txt...")
 
-		if _, err := os.Stat("data/conversations.txt"); os.IsNotExist(err) {
-			fmt.Println("❌ data/conversations.txt not found!")
+		if _, err := os.Stat(config.ConversationsFile); os.IsNotExist(err) {
+			fmt.Printf("❌ %s not found!\n", config.ConversationsFile)
 			return
 		}
 
-		if err := data.LoadFromFile("data/conversations.txt"); err != nil {
+		if err := data.LoadFromFile(config.ConversationsFile); err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
 			return
 		}
@@ -67,7 +64,7 @@ func main() {
 		mem.CalculateIDF()
 
 		fmt.Println("💾 Saving memory to checkpoint...")
-		if err := mem.Save(checkpointFile); err != nil {
+		if err := mem.Save(config.CheckpointFile); err != nil {
 			fmt.Printf("⚠️ Warning: Could not save checkpoint: %v\n", err)
 		} else {
 			fmt.Println("✅ Checkpoint saved!")
@@ -81,6 +78,7 @@ func main() {
 	fmt.Println()
 
 	scanner := bufio.NewScanner(os.Stdin)
+	temperature := config.DefaultTemperature
 
 	for {
 		fmt.Print("You: ")
@@ -96,12 +94,12 @@ func main() {
 		switch {
 		case input == "/quit":
 			fmt.Println("💾 Saving checkpoint...")
-			mem.Save(checkpointFile)
+			mem.Save(config.CheckpointFile)
 			fmt.Println("👋 Goodbye!")
 			return
 
 		case input == "/save":
-			if err := mem.Save(checkpointFile); err != nil {
+			if err := mem.Save(config.CheckpointFile); err != nil {
 				fmt.Printf("❌ Error saving: %v\n", err)
 			} else {
 				fmt.Println("✅ Checkpoint saved!")
@@ -113,7 +111,7 @@ func main() {
 			newVocab := dataset.NewVocabulary()
 			newData := dataset.NewDataset(newVocab)
 
-			if err := newData.LoadFromFile("data/conversations.txt"); err != nil {
+			if err := newData.LoadFromFile(config.ConversationsFile); err != nil {
 				fmt.Printf("❌ Error: %v\n", err)
 				continue
 			}
@@ -128,7 +126,7 @@ func main() {
 			data = newData
 			vocab = newVocab
 
-			mem.Save(checkpointFile)
+			mem.Save(config.CheckpointFile)
 			fmt.Printf("✅ Reloaded %d conversations!\n", len(mem.Questions))
 			continue
 
@@ -137,29 +135,30 @@ func main() {
 			fmt.Printf("   Conversations: %d\n", len(mem.Questions))
 			fmt.Printf("   Vocabulary: %d words\n", vocab.Size)
 			fmt.Printf("   Temperature: %.1f\n", temperature)
+			fmt.Printf("   Similarity Threshold: %.2f\n", config.SimilarityThreshold)
 			fmt.Println()
 			continue
 
 		case strings.HasPrefix(input, "/temp "):
 			fmt.Sscanf(input, "/temp %f", &temperature)
-			if temperature < 0.1 {
-				temperature = 0.1
+			if temperature < config.MinTemperature {
+				temperature = config.MinTemperature
 			}
-			if temperature > 1.5 {
-				temperature = 1.5
+			if temperature > config.MaxTemperature {
+				temperature = config.MaxTemperature
 			}
 			fmt.Printf("✅ Temperature set to: %.1f\n", temperature)
 			continue
 		}
 
 		questionTokens := data.Tokenize(input)
-		responseTokens := mem.Generate(questionTokens, maxTokens, temperature)
+		responseTokens := mem.Generate(questionTokens, config.MaxTokens, temperature)
 
 		if len(responseTokens) == 0 {
-			if containsAny(input, []string{"hello", "hi", "hey"}) {
-				fmt.Println("Bot: hello how can I help you today")
+			if containsAny(input, config.GreetingWords) {
+				fmt.Printf("Bot: %s\n", config.GreetingResponse)
 			} else {
-				fmt.Println("Bot: I don't know how to answer that yet")
+				fmt.Printf("Bot: %s\n", config.DefaultResponse)
 			}
 		} else {
 			response := data.Detokenize(responseTokens)
