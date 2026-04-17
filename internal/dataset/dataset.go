@@ -72,7 +72,6 @@ func (d *Dataset) tokenizeAndAdd(text string) []int {
 	return tokens
 }
 
-// Tokenize converte texto em IDs usando o vocabulário existente
 func (d *Dataset) Tokenize(text string) []int {
 	words := tokenizeText(text)
 	tokens := make([]int, 0, len(words))
@@ -82,12 +81,10 @@ func (d *Dataset) Tokenize(text string) []int {
 	return tokens
 }
 
-// Detokenize converte IDs de volta para texto
 func (d *Dataset) Detokenize(tokens []int) string {
 	return d.Vocab.Detokenize(tokens)
 }
 
-// tokenizeText função auxiliar para tokenização básica
 func tokenizeText(text string) []string {
 	text = strings.ToLower(text)
 
