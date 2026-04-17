@@ -5,7 +5,7 @@ const (
 	EmbedDim = 50
 
 	// Response generation
-	MaxTokens   = 50
+	MaxTokens   = 100
 	Temperature = 0.4
 
 	// Similarity thresholds
