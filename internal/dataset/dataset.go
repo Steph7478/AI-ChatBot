@@ -7,61 +7,9 @@ import (
 	"unicode"
 )
 
-type Vocabulary struct {
-	WordToID map[string]int
-	IDToWord map[int]string
-	Size     int
-}
-
-func NewVocabulary() *Vocabulary {
-	vocab := &Vocabulary{
-		WordToID: make(map[string]int),
-		IDToWord: make(map[int]string),
-	}
-	vocab.AddWord("<pad>")
-	vocab.AddWord("<unk>")
-	vocab.AddWord("<eos>")
-	return vocab
-}
-
-func (v *Vocabulary) AddWord(word string) int {
-	if id, exists := v.WordToID[word]; exists {
-		return id
-	}
-	id := v.Size
-	v.WordToID[word] = id
-	v.IDToWord[id] = word
-	v.Size++
-	return id
-}
-
-func (v *Vocabulary) GetID(word string) int {
-	if id, exists := v.WordToID[word]; exists {
-		return id
-	}
-	return v.WordToID["<unk>"]
-}
-
-func (v *Vocabulary) Detokenize(tokens []int) string {
-	words := make([]string, 0, len(tokens))
-	for _, id := range tokens {
-		if word, exists := v.IDToWord[id]; exists {
-			if !strings.HasPrefix(word, "<") {
-				words = append(words, word)
-			}
-		}
-	}
-	return strings.Join(words, " ")
-}
-
-type Dataset struct {
-	Conversations [][2][]int
-	Vocab         *Vocabulary
-}
-
 func NewDataset(vocab *Vocabulary) *Dataset {
 	return &Dataset{
-		Conversations: make([][2][]int, 0),
+		Conversations: make([]Conversation, 0),
 		Vocab:         vocab,
 	}
 }
@@ -111,7 +59,7 @@ func (d *Dataset) LoadFromFile(filename string) error {
 func (d *Dataset) AddConversation(userMsg, botMsg string) {
 	userTokens := d.tokenizeAndAdd(userMsg)
 	botTokens := d.tokenizeAndAdd(botMsg)
-	d.Conversations = append(d.Conversations, [2][]int{userTokens, botTokens})
+	d.Conversations = append(d.Conversations, Conversation{userTokens, botTokens})
 }
 
 func (d *Dataset) tokenizeAndAdd(text string) []int {
@@ -124,6 +72,7 @@ func (d *Dataset) tokenizeAndAdd(text string) []int {
 	return tokens
 }
 
+// Tokenize converte texto em IDs usando o vocabulário existente
 func (d *Dataset) Tokenize(text string) []int {
 	words := tokenizeText(text)
 	tokens := make([]int, 0, len(words))
@@ -133,10 +82,12 @@ func (d *Dataset) Tokenize(text string) []int {
 	return tokens
 }
 
+// Detokenize converte IDs de volta para texto
 func (d *Dataset) Detokenize(tokens []int) string {
 	return d.Vocab.Detokenize(tokens)
 }
 
+// tokenizeText função auxiliar para tokenização básica
 func tokenizeText(text string) []string {
 	text = strings.ToLower(text)
 
@@ -150,4 +101,15 @@ func tokenizeText(text string) []string {
 	}
 
 	return strings.Fields(result.String())
+}
+
+func (d *Dataset) GetConversationCount() int {
+	return len(d.Conversations)
+}
+
+func (d *Dataset) GetConversation(index int) ([]int, []int, bool) {
+	if index < 0 || index >= len(d.Conversations) {
+		return nil, nil, false
+	}
+	return d.Conversations[index][0], d.Conversations[index][1], true
 }
