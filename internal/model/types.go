@@ -8,16 +8,16 @@ type ResponseResult struct {
 	Confidence float64
 }
 
-type SimpleTextMatcher struct {
-	Conversations map[string]string
-}
-
 type ResponseType int
 
 const (
 	ResponseGenerated ResponseType = iota
 	ResponseFallback
 )
+
+type SimpleTextMatcher struct {
+	Conversations map[string]string
+}
 
 type Model struct {
 	Brain         *neural.Transformer

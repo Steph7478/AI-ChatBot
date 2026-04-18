@@ -24,8 +24,3 @@ func (m *Model) SaveConversation(userInput, botResponse string) error {
 	_, err = f.WriteString(userInput + "|" + botResponse + "\n")
 	return err
 }
-
-func (m *Model) LearnAndSave(input, response string) error {
-	m.Learn(input, response)
-	return m.SaveConversation(input, response)
-}

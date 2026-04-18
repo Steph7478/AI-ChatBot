@@ -31,7 +31,6 @@ func main() {
 	temp := config.DefaultTemp
 
 	cmdHandler := app.NewCommandHandler(m, &temp)
-	learner := app.NewLearner(m)
 
 	fmt.Println("🧠 Neural Chatbot")
 	fmt.Println(strings.Repeat("=", 50))
@@ -57,11 +56,6 @@ func main() {
 			continue
 		}
 
-		result := m.GenerateResponse(input, temp)
-		fmt.Printf("\033[36mBot: %s\033[0m\n", result.Text)
-
-		if result.Type == model.ResponseFallback {
-			learner.LearnFromUser(scanner, input)
-		}
+		m.GenerateResponse(input, temp, scanner)
 	}
 }

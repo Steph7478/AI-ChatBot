@@ -9,11 +9,11 @@ import (
 )
 
 func (m *Model) LoadAll() {
-	m.loadCSVLike(config.ConversationsFile, m.onPair)
-	m.loadCSVLike(config.PromptsFile, m.onPrompt)
+	m.loadFile(config.ConversationsFile, m.onPair)
+	m.loadFile(config.PromptsFile, m.onPrompt)
 }
 
-func (m *Model) loadCSVLike(path string, callback func([]string)) {
+func (m *Model) loadFile(path string, callback func([]string)) {
 	file, err := os.Open(path)
 	if err != nil {
 		return
@@ -27,22 +27,33 @@ func (m *Model) loadCSVLike(path string, callback func([]string)) {
 			continue
 		}
 
-		fields := strings.FieldsFunc(line, func(r rune) bool {
-			return r == '|' || r == ',' || r == ';' || r == '\t' || r == ':'
-		})
+		separators := []string{"|", ",", ";", "\t", ":"}
+		var idx int = -1
+		var sep string
 
-		if len(fields) >= 2 {
-			callback(fields)
+		for _, s := range separators {
+			idx = strings.Index(line, s)
+			if idx != -1 {
+				sep = s
+				break
+			}
+		}
+
+		if idx == -1 {
+			continue
+		}
+
+		input := strings.ToLower(strings.TrimSpace(line[:idx]))
+		response := strings.TrimSpace(line[idx+len(sep):])
+
+		if input != "" && response != "" {
+			callback([]string{input, response})
 		}
 	}
 }
 
 func (m *Model) onPair(fields []string) {
-	input := strings.ToLower(strings.TrimSpace(fields[0]))
-	response := strings.TrimSpace(fields[1])
-	if input != "" && response != "" {
-		m.Conversations[input] = response
-	}
+	m.Conversations[fields[0]] = fields[1]
 }
 
 func (m *Model) onPrompt(fields []string) {
@@ -50,8 +61,9 @@ func (m *Model) onPrompt(fields []string) {
 		return
 	}
 	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
-	for i := 1; i < len(fields); i++ {
-		synonym := strings.ToLower(strings.TrimSpace(fields[i]))
+	synonyms := strings.Split(fields[1], "|")
+	for _, synonym := range synonyms {
+		synonym = strings.ToLower(strings.TrimSpace(synonym))
 		if synonym != "" {
 			m.Synonyms[synonym] = mainPhrase
 		}

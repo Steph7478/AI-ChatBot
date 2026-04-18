@@ -17,29 +17,29 @@ const (
 )
 
 const (
-	Temperature   = 0.7
-	TopK          = 5
-	MaxTokens     = 50
-	MinConfidence = 0.5
+	Temperature   = 1.2
+	TopK          = 50
+	MaxTokens     = 100
+	MinConfidence = 0.1
 )
 
 const (
-	MinSimilarityScore = 0.8
-	ExactWordBonus     = 0.2
-	ContainBonus       = 0.1
-	LengthPenalty      = 0.05
+	MinSimilarityScore = 0.5
+	ExactWordBonus     = 0.3
+	ContainBonus       = 0.2
+	LengthPenalty      = 0.03
 )
 
 const (
-	DefaultTemp = 0.7
+	DefaultTemp = 0.9
 	MinTemp     = 0.1
-	MaxTemp     = 1.5
+	MaxTemp     = 2.0
 )
 
 const (
-	LearningRate   = 0.00001
-	BatchSize      = 4
-	TrainMaxSeqLen = 32
-	GradientClip   = 0.1
-	Epsilon        = 1e-7
+	LearningRate   = 0.0005
+	BatchSize      = 8
+	TrainMaxSeqLen = 64
+	GradientClip   = 0.5
+	Epsilon        = 1e-6
 )
