@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# ☕ Java Chatbot - Interactive Menu
+# 🧠 Neural Chatbot - Interactive Menu
 # ============================================
 
 # Colors
@@ -19,7 +19,7 @@ show_menu() {
     clear
     echo -e "${BOLD}${MAGENTA}"
     echo "    ╔══════════════════════════════════════════════╗"
-    echo "    ║     ☕  JAVA CHATBOT - MAIN MENU  ☕         ║"
+    echo "    ║     🧠  NEURAL CHATBOT - MAIN MENU  🧠       ║"
     echo "    ╚══════════════════════════════════════════════╝"
     echo -e "${NC}"
     echo
@@ -28,7 +28,7 @@ show_menu() {
     echo -e "    ${GREEN}1)${NC} 🚀 Start Chatbot"
     echo -e "    ${GREEN}2)${NC} 📊 Show Statistics"
     echo -e "    ${GREEN}3)${NC} ✏️  Edit conversations.txt"
-    echo -e "    ${GREEN}4)${NC} 🗑️  Delete Checkpoint (reset learning)"
+    echo -e "    ${GREEN}4)${NC} 🗑️  Delete Model (reset learning)"
     echo -e "    ${GREEN}5)${NC} 🔧 Recompile"
     echo -e "    ${GREEN}6)${NC} ❓ Show Help"
     echo -e "    ${GREEN}7)${NC} 👋 Exit"
@@ -53,16 +53,19 @@ show_stats() {
         echo -e "    💾 Size: ${CYAN}$FILE_SIZE${NC}"
     else
         echo -e "  ${RED}✗${NC} conversations.txt ${RED}not found${NC}"
+        echo -e "    ${YELLOW}💡 Create data/conversations.txt with:${NC}"
+        echo -e "       User: question"
+        echo -e "       Bot: answer"
     fi
     
     echo
     
-    if [ -f "data/checkpoint.gob" ]; then
-        CHECK_SIZE=$(du -h data/checkpoint.gob 2>/dev/null | cut -f1)
-        echo -e "  ${GREEN}✓${NC} ${BOLD}checkpoint.gob${NC}"
+    if [ -f "data/model.gob" ]; then
+        CHECK_SIZE=$(du -h data/model.gob 2>/dev/null | cut -f1)
+        echo -e "  ${GREEN}✓${NC} ${BOLD}model.gob${NC}"
         echo -e "    💾 Size: ${CYAN}$CHECK_SIZE${NC}"
     else
-        echo -e "  ${YELLOW}⚠${NC} No checkpoint found"
+        echo -e "  ${YELLOW}⚠${NC} No model checkpoint found"
     fi
     
     echo
@@ -87,6 +90,7 @@ edit_conversations() {
     
     if [ ! -f "data/conversations.txt" ]; then
         echo -e "  ${RED}❌ conversations.txt not found!${NC}"
+        echo -e "  ${YELLOW}💡 Create it manually at: data/conversations.txt${NC}"
         read -p "  Press Enter to continue..."
         return
     fi
@@ -116,25 +120,25 @@ edit_conversations() {
         *) echo -e "  ${BLUE}Cancelled${NC}" ;;
     esac
     
-    echo -e "\n  ${GREEN}✅ Done! Use /reload in chatbot to apply changes${NC}"
+    echo -e "\n  ${GREEN}✅ Done!${NC}"
     read -p "  Press Enter to continue..."
 }
 
-# Delete checkpoint
-delete_checkpoint() {
+# Delete model
+delete_model() {
     echo
     echo -e "${BOLD}${RED}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${RED}║           🗑️  DELETE CHECKPOINT            ║${NC}"
+    echo -e "${BOLD}${RED}║           🗑️  DELETE MODEL                 ║${NC}"
     echo -e "${BOLD}${RED}╚════════════════════════════════════════════╝${NC}"
     echo
-    echo -e "  ${YELLOW}⚠️  This will delete all learned memory!${NC}"
-    echo -e "  ${CYAN}The chatbot will restart learning from conversations.txt${NC}"
+    echo -e "  ${YELLOW}⚠️  This will delete all learned neural weights!${NC}"
+    echo -e "  ${CYAN}The model will restart with random weights${NC}"
     echo
     read -p "  Are you sure? (yes/no): " confirm
     
     if [ "$confirm" = "yes" ]; then
-        rm -f data/checkpoint.gob
-        echo -e "  ${GREEN}✅ Checkpoint deleted!${NC}"
+        rm -f data/model.gob
+        echo -e "  ${GREEN}✅ Model deleted!${NC}"
     else
         echo -e "  ${BLUE}Cancelled${NC}"
     fi
@@ -152,6 +156,7 @@ recompile() {
     
     if ! command -v go &> /dev/null; then
         echo -e "  ${RED}❌ Go is not installed!${NC}"
+        echo -e "  ${YELLOW}Install: https://golang.org/dl/${NC}"
         read -p "  Press Enter to continue..."
         return
     fi
@@ -179,11 +184,15 @@ show_help() {
     echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════╝${NC}"
     echo
     echo -e "  ${BOLD}${GREEN}Chatbot Commands:${NC}"
-    echo -e "    /quit      ${CYAN}→${NC} Save and exit"
-    echo -e "    /save      ${CYAN}→${NC} Save checkpoint manually"
-    echo -e "    /reload    ${CYAN}→${NC} Reload conversations from file"
-    echo -e "    /stats     ${CYAN}→${NC} Show statistics"
+    echo -e "    /quit      ${CYAN}→${NC} Exit chatbot"
+    echo -e "    /save      ${CYAN}→${NC} Save model checkpoint"
+    echo -e "    /stats     ${CYAN}→${NC} Show model statistics"
     echo -e "    /temp X    ${CYAN}→${NC} Set temperature (0.1-1.5)"
+    echo
+    echo -e "  ${BOLD}${GREEN}Model Architecture:${NC}"
+    echo -e "    • Transformer with Multi-Head Attention"
+    echo -e "    • Vocab: 10,000 | Embedding: 128-dim"
+    echo -e "    • Hidden: 256-dim | Heads: 4 | Layers: 2"
     echo
     echo -e "  ${BOLD}${GREEN}File Format:${NC}"
     echo -e "    ${YELLOW}User:${NC} your question here"
@@ -191,16 +200,16 @@ show_help() {
     echo -e "    ${CYAN}(blank line between conversations)${NC}"
     echo
     echo -e "  ${BOLD}${GREEN}How Learning Works:${NC}"
-    echo -e "    1. Bot searches for exact match in conversations.txt"
-    echo -e "    2. If not found, uses LCS similarity (threshold > 0.6)"
-    echo -e "    3. If still nothing, asks you to teach"
-    echo -e "    4. Your teaching is saved to checkpoint"
+    echo -e "    1. Neural network generates response"
+    echo -e "    2. If confidence is low (< 0.5), asks for teaching"
+    echo -e "    3. Teaching is saved to conversations.txt"
+    echo -e "    4. Model weights saved to model.gob"
     echo
     echo -e "  ${BOLD}${GREEN}Tips:${NC}"
-    echo -e "    • More conversations = better answers"
-    echo -e "    • Use /reload after editing conversations.txt"
+    echo -e "    • More conversations = better responses"
     echo -e "    • Lower temperature = more predictable"
     echo -e "    • Higher temperature = more creative"
+    echo -e "    • Model learns from every interaction"
     echo
     read -p "  Press Enter to continue..."
 }
@@ -225,18 +234,13 @@ start_chatbot() {
     fi
     
     if [ ! -f "data/conversations.txt" ]; then
-        echo -e "  ${YELLOW}⚠️  Creating example conversations.txt...${NC}"
-        cat > data/conversations.txt << 'EOF'
-User: hello
-Bot: hello welcome to the java chatbot
-
-User: what is java
-Bot: java is a programming language created by james gosling in 1991
-
-User: who created java
-Bot: james gosling created java at sun microsystems
-EOF
-        echo -e "  ${GREEN}✅ Created${NC}"
+        echo -e "  ${RED}❌ conversations.txt not found!${NC}"
+        echo -e "  ${YELLOW}💡 Please create data/conversations.txt with:${NC}"
+        echo -e "     User: your question"
+        echo -e "     Bot: your answer"
+        echo -e "     (blank line between conversations)"
+        read -p "  Press Enter to continue..."
+        return
     fi
     
     CONV_COUNT=$(grep -c "^User:" data/conversations.txt 2>/dev/null || echo "0")
@@ -246,7 +250,10 @@ EOF
     if [ ! -f "chatbot" ]; then
         NEED_COMPILE=1
     else
-        for file in cmd/main.go internal/app/*.go internal/dataset/*.go internal/model/*.go internal/config/*.go; do
+        if [ -f "cmd/main.go" ] && [ "cmd/main.go" -nt "chatbot" ] 2>/dev/null; then
+            NEED_COMPILE=1
+        fi
+        for file in internal/*/*.go; do
             if [ -f "$file" ] && [ "$file" -nt "chatbot" ] 2>/dev/null; then
                 NEED_COMPILE=1
                 break
@@ -287,12 +294,12 @@ while true; do
         1) start_chatbot ;;
         2) show_stats ;;
         3) edit_conversations ;;
-        4) delete_checkpoint ;;
+        4) delete_model ;;
         5) recompile ;;
         6) show_help ;;
         7) 
             echo
-            echo -e "  ${GREEN}👋 Goodbye! Keep coding in Java! ☕${NC}"
+            echo -e "  ${GREEN}👋 Goodbye! Keep coding! 🧠${NC}"
             exit 0
             ;;
         *) 

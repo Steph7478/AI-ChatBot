@@ -1,12 +1,15 @@
 # ☕ Java Chatbot - AI-Powered Java Assistant
 
-A lightweight retrieval-based chatbot specialized in the Java programming language. Built with pure Go, this chatbot learns from conversations and uses LCS (Longest Common Subsequence) similarity to find the most relevant answers.
+A lightweight neural network chatbot specialized in the Java programming language. Built with pure Go, this chatbot uses a Transformer with Multi-Head Attention to generate responses and learns from conversations.
 
 ## Features
 
-- Lightweight - Runs on any PC including old hardware with minimal RAM usage
-- Persistent Memory - Saves learned conversations to checkpoint files for instant loading
-- LCS Similarity - Intelligent answer matching based on word sequence importance
+- **Neural Transformer Architecture** - 2-layer Transformer with Multi-Head Attention (4 heads)
+- Lightweight - Runs on any PC including old hardware with minimal RAM usage (~100MB)
+- Persistent Memory - Saves neural network weights to model.gob
+- Multiple File Support - Loads from conversations.txt, prompts.txt, and examples.txt
+- Semantic Matching - Word similarity matching (30% threshold) when neural net needs help
+- Synonym Support - Maps variations like "hi|hello|hey" to the same response
 - Fallback Learning - Learns new answers directly from users when it doesn't know something
 - Zero Dependencies - Pure Go implementation no external libraries or GPU required
 - Comprehensive Java Knowledge - Covers history syntax JVM frameworks testing microservices and career
@@ -26,13 +29,14 @@ A lightweight retrieval-based chatbot specialized in the Java programming langua
 
 ## How It Works
 
-The chatbot reads conversations from a text file where each conversation has a User question and a Bot answer. It then builds a vocabulary and uses LCS (Longest Common Subsequence) to find the most similar question in memory. When you ask something, it compares the sequence of words and returns the corresponding answer. If no match is found with high confidence, the chatbot asks you to teach the correct answer, which is then saved for future use. All learned data is saved to a checkpoint file for instant loading on next startup.
+The chatbot reads conversations from a text file where each conversation has a User question and a Bot answer. It also reads prompts.txt for synonyms and examples.txt for training examples. It uses a Transformer neural network to generate responses. When you ask something, it first tries exact match, then neural generation, then semantic similarity. If no match is found with high confidence, the chatbot asks you to teach the correct answer, which is then saved for future use. All learned data is saved to a checkpoint file for instant loading on next startup.
 
 ### Matching Strategy
 
 1. **Exact Match** - Returns the exact answer if the question exists
-2. **LCS Similarity** - Finds the most similar question based on word sequence (threshold > 0.7)
-3. **Fallback Learning** - Asks the user to teach when no match is found
+2. **Neural Generation** - Uses Transformer neural network to generate response
+3. **Semantic Similarity** - Finds similar questions based on word overlap (threshold > 0.3)
+4. **Fallback Learning** - Asks the user to teach when no match is found
 
 ## Topics Covered
 
@@ -46,28 +50,16 @@ The chatbot reads conversations from a text file where each conversation has a U
 - Build tools Maven and Gradle
 - Testing with JUnit Mockito and Testcontainers
 - Databases JPA Hibernate and JDBC
-- **Java vs Python jokes and friendly roasts** - Why Java is like a warm hug from a friendly robot and Python is like a slow bicycle with training wheels
+- **Java vs Python jokes and friendly roasts** - Why Java is like espresso strong fast reliable and Python is like chamomile tea tasty but slow
 - Career advice certifications and interview questions
 
 ## Personality & Humor
 
 This chatbot has a strong personality! It absolutely LOVES Java and playfully teases Python in a cute, lighthearted way. Expect responses like:
 
-- "java is like a warm hug from a friendly robot ☕💕"
-- "python is okay i guess but java is the king"
-- "python is like a bicycle java is like a spaceship 🚀"
-- "java writes once runs anywhere python writes once cries everywhere because indentation broke again"
+- "Java is like espresso - strong fast reliable. Python is like chamomile tea - tasty but slow! ☕⚡"
+- "Java is like a tank - strong typing compiled runs anywhere. Python is like a bicycle - fun but don't take it to war! 😂"
+- "Why did Python go to the doctor? Unhealthy indentation! Java just checked its exceptions 🤣"
+- "Write once run anywhere - Python can't say that! 🎯☕"
 
 The bot is designed to be fun and engaging while still providing accurate technical information about Java. It's perfect for learning Java with a smile on your face!
-
-## Conversation File Format
-
-```txt
-User: what is java?
-Bot: java is a programming language created by james gosling
-
-User: who created java?
-Bot: james gosling created java at sun microsystems
-
-(blank line between conversations)
-```

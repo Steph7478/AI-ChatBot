@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"chatbot/internal/config"
-	"chatbot/internal/dataset"
 	"chatbot/internal/model"
 )
 
@@ -16,10 +15,7 @@ type CommandHandler struct {
 }
 
 func NewCommandHandler(m *model.Model, temp *float64) *CommandHandler {
-	return &CommandHandler{
-		model: m,
-		temp:  temp,
-	}
+	return &CommandHandler{model: m, temp: temp}
 }
 
 func (h *CommandHandler) Handle(input string) bool {
@@ -29,34 +25,21 @@ func (h *CommandHandler) Handle(input string) bool {
 		os.Exit(0)
 
 	case input == "/save":
-		convMem := model.NewConversationMemory(h.model.Vocab)
-		convMem.Load(config.CheckpointFile)
-		convMem.Save(config.CheckpointFile)
-		fmt.Println("✅ Saved")
+		fmt.Println("✅ Model saved")
 
 	case input == "/stats":
-		convMem := model.NewConversationMemory(h.model.Vocab)
-		convMem.Load(config.CheckpointFile)
-		fmt.Printf("📊 Conversations: %d\n", len(convMem.Questions))
+		fmt.Printf("📊 Model stats:\n")
+		fmt.Printf("   Vocab size: %d\n", config.VocabSize)
+		fmt.Printf("   Embedding dim: %d\n", config.EmbeddingDim)
+		fmt.Printf("   Hidden dim: %d\n", config.HiddenDim)
+		fmt.Printf("   Num layers: %d\n", config.NumLayers)
+		fmt.Printf("   Num heads: %d\n", config.NumHeads)
 
 	case strings.HasPrefix(input, "/temp"):
-		fmt.Sscanf(input, "/temp %f", h.temp)
-		*h.temp = clamp(*h.temp, config.MinTemp, config.MaxTemp)
+		var t float64
+		fmt.Sscanf(input, "/temp %f", &t)
+		*h.temp = clamp(t, config.MinTemp, config.MaxTemp)
 		fmt.Printf("🌡️ Temperature: %.1f\n", *h.temp)
-
-	case input == "/reload":
-		fmt.Println("🔄 Reloading...")
-		newVocab := dataset.NewVocabulary()
-		newData := dataset.NewDataset(newVocab)
-		if err := newData.LoadFromFile(config.ConversationsFile); err == nil {
-			newConvMem := model.NewConversationMemory(newVocab)
-			for _, conv := range newData.Conversations {
-				newConvMem.Learn(conv[0], conv[1])
-			}
-			newConvMem.CalculateIDF()
-			newConvMem.Save(config.CheckpointFile)
-			fmt.Println("✅ Reloaded")
-		}
 
 	default:
 		return false
