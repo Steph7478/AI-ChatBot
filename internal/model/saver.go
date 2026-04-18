@@ -12,8 +12,7 @@ func (m *Model) SaveConversation(userInput, botResponse string) error {
 		return err
 	}
 	defer f.Close()
-
-	_, err = f.WriteString("\nUser: " + userInput + "\nBot: " + botResponse + "\n")
+	_, err = f.WriteString(userInput + "|" + botResponse + "\n")
 	return err
 }
 

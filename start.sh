@@ -45,17 +45,27 @@ show_stats() {
     echo
     
     if [ -f "data/conversations.txt" ]; then
-        CONV_COUNT=$(grep -c "^User:" data/conversations.txt 2>/dev/null || echo "0")
+        # Conta linhas que não são comentários nem vazias
+        CONV_COUNT=$(grep -c "|" data/conversations.txt 2>/dev/null || echo "0")
         FILE_SIZE=$(du -h data/conversations.txt 2>/dev/null | cut -f1)
         
         echo -e "  ${GREEN}✓${NC} ${BOLD}conversations.txt${NC}"
         echo -e "    📝 Conversations: ${CYAN}$CONV_COUNT${NC}"
         echo -e "    💾 Size: ${CYAN}$FILE_SIZE${NC}"
+        
+        # Mostra últimas 3 conversas
+        if [ $CONV_COUNT -gt 0 ]; then
+            echo
+            echo -e "  ${CYAN}📋 Last conversations:${NC}"
+            tail -5 data/conversations.txt | grep "|" | while IFS='|' read -r input response; do
+                echo -e "    ${GREEN}→${NC} ${input:0:40}"
+                echo -e "    ${BLUE}←${NC} ${response:0:40}..."
+            done
+        fi
     else
         echo -e "  ${RED}✗${NC} conversations.txt ${RED}not found${NC}"
         echo -e "    ${YELLOW}💡 Create data/conversations.txt with:${NC}"
-        echo -e "       User: question"
-        echo -e "       Bot: answer"
+        echo -e "       what is java|Java is a programming language"
     fi
     
     echo
@@ -86,18 +96,17 @@ edit_conversations() {
     
     if [ ! -f "data/conversations.txt" ]; then
         echo -e "  ${RED}❌ conversations.txt not found!${NC}"
-        echo -e "  ${YELLOW}💡 Create it manually at: data/conversations.txt${NC}"
-        read -p "  Press Enter to continue..."
-        return
+        echo -e "  ${YELLOW}💡 Creating with example...${NC}"
+        mkdir -p data
+        echo "hi|Hello! How can I help you?" > data/conversations.txt
+        echo "what is java|Java is a programming language" >> data/conversations.txt
     fi
     
     echo -e "  ${CYAN}📋 Last conversations:${NC}\n"
-    tail -20 data/conversations.txt | grep -E "User:|Bot:" | tail -6 | while read line; do
-        if [[ $line == User:* ]]; then
-            echo -e "    ${GREEN}→${NC} $line"
-        else
-            echo -e "    ${BLUE}←${NC} $line"
-        fi
+    tail -5 data/conversations.txt | grep "|" | while IFS='|' read -r input response; do
+        echo -e "    ${GREEN}Q:${NC} ${input:0:50}"
+        echo -e "    ${BLUE}A:${NC} ${response:0:50}"
+        echo
     done
     
     echo
@@ -190,15 +199,14 @@ show_help() {
     echo -e "    • Vocab: 10,000 | Embedding: 128-dim"
     echo -e "    • Hidden: 256-dim | Heads: 4 | Layers: 2"
     echo
-    echo -e "  ${BOLD}${GREEN}File Format:${NC}"
-    echo -e "    ${YELLOW}User:${NC} your question here"
-    echo -e "    ${YELLOW}Bot:${NC} answer here"
-    echo -e "    ${CYAN}(blank line between conversations)${NC}"
+    echo -e "  ${BOLD}${GREEN}File Format (conversations.txt):${NC}"
+    echo -e "    ${YELLOW}question|answer${NC}"
+    echo -e "    ${CYAN}Example: what is Java|Java is a programming language${NC}"
     echo
     echo -e "  ${BOLD}${GREEN}How Learning Works:${NC}"
     echo -e "    1. Neural network generates response"
     echo -e "    2. If confidence is low, asks for teaching"
-    echo -e "    3. Teaching is saved to conversations.txt"
+    echo -e "    3. Teaching is saved to conversations.txt (pipe format)"
     echo -e "    4. Model weights saved to model.gob"
     echo
     echo -e "  ${BOLD}${GREEN}Tips:${NC}"
@@ -231,15 +239,14 @@ start_chatbot() {
     
     if [ ! -f "data/conversations.txt" ]; then
         echo -e "  ${RED}❌ conversations.txt not found!${NC}"
-        echo -e "  ${YELLOW}💡 Please create data/conversations.txt with:${NC}"
-        echo -e "     User: your question"
-        echo -e "     Bot: your answer"
-        echo -e "     (blank line between conversations)"
-        read -p "  Press Enter to continue..."
-        return
+        echo -e "  ${YELLOW}💡 Creating default file...${NC}"
+        echo "# Format: question|answer" > data/conversations.txt
+        echo "hi|Hello! How can I help you?" >> data/conversations.txt
+        echo "what is your name|I'm Neural Chatbot!" >> data/conversations.txt
+        echo -e "  ${GREEN}✅ Created with examples${NC}"
     fi
     
-    CONV_COUNT=$(grep -c "^User:" data/conversations.txt 2>/dev/null || echo "0")
+    CONV_COUNT=$(grep -c "|" data/conversations.txt 2>/dev/null | grep -v "^0$" || echo "0")
     echo -e "  ${GREEN}✓${NC} Found ${CYAN}$CONV_COUNT${NC} conversations"
     
     NEED_COMPILE=0
@@ -282,7 +289,6 @@ start_chatbot() {
     echo -e "${BOLD}${MAGENTA}════════════════════════════════════════════════${NC}"
     echo
     
-    # Executa o chatbot diretamente (as cores vêm do main.go)
     ./chatbot
     
     echo

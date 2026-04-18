@@ -1,37 +1,10 @@
-# Greetings
-hi|hello|hey|hola|sup|howdy
-good morning|good afternoon|good evening
-
-# Questions about Java
-java vs python|java or python|which is better java or python
-why java is better|java is better than python
-python is slow|java is faster
-java is verbose|java verbose
-
-# Jokes
-tell me a joke|say something funny|make me laugh|another joke
-
-# Learning
-should i learn java|is java worth learning|learn java
-java or go|go vs java|java or rust|rust vs java
-
-# Opinions
-what do you think of python|opinion on python
-what do you think of javascript|javascript opinion
-i love python|python is good
-
-# Farewell
-goodbye|bye|see you later|cya|farewell|take care
-thank you|thanks|appreciate it
-
-# Bot questions
-are you a bot|what are you|who are you
-what can you do|your capabilities
-do you have feelings|can you feel
-
-# Java love
-java is great|i love java|java rocks|best language
-you love java|java passion
-
-# Fun
-say something smart|give me wisdom|motivate me
+Greetings: hi|hello|hey|hola|sup|howdy|good morning|good afternoon|good evening
+Java Questions: java vs python|java or python|which is better|why java better|java is better|python is slow|java faster|java verbose
+Jokes: tell me joke|say something funny|make me laugh|another joke
+Learning: should i learn java|is java worth|learn java|java or go|go vs java|java vs rust
+Opinions: what do you think of python|javascript opinion|i love python|python is good
+Farewell: goodbye|bye|see you|later|cya|farewell|take care
+Thanks: thank you|thanks|appreciate it
+Bot Questions: are you a bot|what are you|who are you|what can you do|your capabilities|do you have feelings
+Java Love: java is great|i love java|java rocks|best language|you love java
+Fun: you're funny|say something smart|give me wisdom|motivate me

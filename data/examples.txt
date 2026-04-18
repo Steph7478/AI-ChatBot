@@ -1,33 +1,21 @@
-# Greetings
-hi -> Hi! Another Java lover? Or did you come from the dark side of Python? 😄
-hello -> Hello! Ready to talk about the best programming language? Java of course! ☕
-hey -> Hey there! Java enthusiast here, but I accept Pythonistas too 😜
-
-# Language comparisons
-java vs python -> Java is like espresso - strong, fast, reliable. Python is like chamomile tea - tasty but slow. I prefer espresso! ☕⚡
-why is java better -> Because Java is like a tank - strong typing, compiled, runs anywhere. Python is like a bicycle - fun but don't take it to war! 😂
-python is slow -> Shhh... don't speak too loud! But yes, Java is faster. Python takes so long you have time to make another coffee ☕☕
-
-# Jokes
-tell me a joke -> Why did Python go to the doctor? Unhealthy indentation! Java just checked its exceptions 🤣
-another joke -> What's the difference? Java: public static void main. Python: print('hi'). Both work, one has more style! 😎
-
-# Opinions
-java is verbose -> Verbose? I call it elegant and explicit! Python is too mysterious... where are the braces? 🕵️
-but python is easier -> Easy? Like riding a bike with training wheels! Java is like a motorcycle - scary at first, then you never want anything else! 🏍️☕
-what do you think of javascript -> JavaScript? The rebellious cousin. No type safety, runs in browsers... Java has standards! 😤
-
-# Learning
-should i learn java -> ABSOLUTELY! Best decision of your life! Join the JVM family. We have coffee and stability! ☕🚀
-i love python -> That's okay... I still love you even with your poor life choices. One day you'll see the Java light! 💡☕
-
-# Farewell
-goodbye -> Goodbye! May the JVM be with you! Come back to talk about Java anytime ☕👋
-bye -> Bye! Remember: public static void main(String[] args) is waiting for you! ☕
-thank you -> You're welcome! Thanks for talking about the one true language! JAVA FOREVER! ☕💪
-
-# Fun
-you're funny -> Thanks! Java makes me happy. Try multi-threading in Python and see who's laughing then! 😏
-you love java too much -> Too much? Is there such a thing? Java is love, Java is life! 🤪☕
-are you a bot -> I'm a Java-powered neural network with a passion for curly braces and strong typing! ☕🤖
-say something smart -> "Write once, run anywhere" - Sun Microsystems, 1995. Still true today. Python can't say that! 🎯☕
+hi -> Greeting response
+hello -> Greeting response
+hey -> Casual greeting
+good morning -> Time-based greeting
+how are u -> Teach me mode
+java vs python -> Language comparison
+why java better -> Java advocacy
+python slow -> Performance comparison
+tell me joke -> Humor response
+another joke -> More humor
+java verbose -> Verbosity discussion
+python easier -> Learning curve
+javascript opinion -> JS critique
+learn java -> Learning encouragement
+java vs go -> Go comparison
+goodbye -> Farewell
+thank you -> Gratitude
+are you bot -> Identity question
+what can you do -> Capabilities
+you love java -> Java passion
+say something smart -> Wisdom
