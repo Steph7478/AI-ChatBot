@@ -29,9 +29,9 @@ func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
 
 func positionalEncoding(seqLen, dim int) [][]float64 {
 	pe := make([][]float64, seqLen)
-	for i := 0; i < seqLen; i++ {
+	for i := range seqLen {
 		pe[i] = make([]float64, dim)
-		for j := 0; j < dim; j++ {
+		for j := range dim {
 			if j%2 == 0 {
 				pe[i][j] = math.Sin(float64(i) / math.Pow(10000, float64(j)/float64(dim)))
 			} else {
