@@ -10,7 +10,6 @@ import (
 
 func (m *Model) LoadAll() {
 	m.loadCSVLike(config.ConversationsFile, m.onPair)
-	m.loadCSVLike(config.ExamplesFile, m.onPair)
 	m.loadCSVLike(config.PromptsFile, m.onPrompt)
 }
 
@@ -47,11 +46,14 @@ func (m *Model) onPair(fields []string) {
 }
 
 func (m *Model) onPrompt(fields []string) {
-	category := strings.TrimSpace(fields[0])
+	if len(fields) < 2 {
+		return
+	}
+	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
 	for i := 1; i < len(fields); i++ {
-		word := strings.ToLower(strings.TrimSpace(fields[i]))
-		if word != "" {
-			m.Synonyms[word] = category
+		synonym := strings.ToLower(strings.TrimSpace(fields[i]))
+		if synonym != "" {
+			m.Synonyms[synonym] = mainPhrase
 		}
 	}
 }

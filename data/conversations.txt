@@ -55,3 +55,4 @@ you're funny|Thanks! Java makes me happy. Try writing a multi-threaded program i
 say something smart|"Write once, run anywhere" - Sun Microsystems, 1995. Still true today. Python can't say that! 🎯☕
 give me wisdom|"Any application that can be written in JavaScript will eventually be written in JavaScript" - but it SHOULD be written in Java! 🧠☕
 motivate me|You can do it! Every expert was once a beginner. Start with Hello World and conquer the coding world! 💪☕
+how to use hashmap|To use HashMap in Java: import java.util.HashMap; HashMap<String, Integer> map = new HashMap<>(); map.put("key", value); map.get("key");

@@ -17,18 +17,31 @@ func NewLearner(m *model.Model) *Learner {
 }
 
 func (l *Learner) LearnFromUser(scanner *bufio.Scanner, input string) {
+	if response, exists := l.model.Conversations[input]; exists {
+		fmt.Printf("Bot: %s\n", response)
+		return
+	}
+
+	normalized := l.model.Normalize(input)
+	if response, exists := l.model.Conversations[normalized]; exists {
+		fmt.Printf("Bot: %s\n", response)
+		return
+	}
+
+	if match, score := l.model.Matcher.FindBestMatch(input); match != "" && score > 0.3 {
+		fmt.Printf("Bot: %s\n", match)
+		return
+	}
+
 	fmt.Print("📝 Teach me: ")
 	scanner.Scan()
-	correct := strings.TrimSpace(scanner.Text())
+	teaching := strings.TrimSpace(scanner.Text())
 
-	if correct == "" {
+	if teaching == "" {
 		fmt.Println("❌ No teaching provided")
 		return
 	}
 
-	if err := l.model.LearnAndSave(input, correct); err != nil {
-		fmt.Printf("⚠️ Saved to memory but couldn't save to file: %v\n", err)
-	} else {
-		fmt.Printf("✅ Learned! Response for '%s' is '%s'\n", input, correct)
-	}
+	l.model.Learn(input, teaching)
+	fmt.Println("✅ Learned! 🧠")
 }

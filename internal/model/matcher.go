@@ -1,14 +1,11 @@
 package model
 
 import (
-	"chatbot/internal/config"
 	"math"
 	"strings"
-)
 
-type SimpleTextMatcher struct {
-	Conversations map[string]string
-}
+	"chatbot/internal/config"
+)
 
 func NewSimpleTextMatcher(conversations map[string]string) *SimpleTextMatcher {
 	return &SimpleTextMatcher{

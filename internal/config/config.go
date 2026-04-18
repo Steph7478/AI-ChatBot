@@ -1,15 +1,11 @@
-// internal/config/config.go
 package config
 
-// File paths
 const (
 	ModelFile         = "data/model.gob"
 	ConversationsFile = "data/conversations.txt"
 	PromptsFile       = "data/prompts.txt"
-	ExamplesFile      = "data/examples.txt"
 )
 
-// Model architecture
 const (
 	VocabSize    = 10000
 	EmbeddingDim = 128
@@ -20,7 +16,6 @@ const (
 	Dropout      = 0.1
 )
 
-// Inference
 const (
 	Temperature   = 0.7
 	TopK          = 5
@@ -28,22 +23,19 @@ const (
 	MinConfidence = 0.5
 )
 
-// Matching
 const (
-	MinSimilarityScore = 0.4
+	MinSimilarityScore = 0.8
 	ExactWordBonus     = 0.2
 	ContainBonus       = 0.1
 	LengthPenalty      = 0.05
 )
 
-// Commands
 const (
 	DefaultTemp = 0.7
 	MinTemp     = 0.1
 	MaxTemp     = 1.5
 )
 
-// Training
 const (
 	LearningRate   = 0.00001
 	BatchSize      = 4

@@ -8,13 +8,6 @@ import (
 	"chatbot/internal/neural"
 )
 
-type Model struct {
-	Brain         *neural.Transformer
-	Matcher       *SimpleTextMatcher
-	Conversations map[string]string
-	Synonyms      map[string]string
-}
-
 func NewModel() *Model {
 	m := &Model{
 		Brain: neural.NewTransformer(
@@ -31,15 +24,28 @@ func NewModel() *Model {
 	}
 
 	m.LoadAll()
+
+	if err := m.LoadModel(); err != nil {
+		fmt.Println("No saved model found, starting fresh")
+	}
+
 	m.Matcher = NewSimpleTextMatcher(m.Conversations)
 
 	return m
 }
 
+func (m *Model) Normalize(text string) string {
+	return m.normalize(text)
+}
+
 func (m *Model) normalize(text string) string {
-	punctuation := []string{"?", "!", ".", ",", ";", ":", "'", "\"", "(", ")"}
 	result := strings.ToLower(strings.TrimSpace(text))
 
+	if main, ok := m.Synonyms[result]; ok {
+		return main
+	}
+
+	punctuation := []string{"?", "!", ".", ",", ";", ":", "'", "\"", "(", ")"}
 	for _, p := range punctuation {
 		result = strings.ReplaceAll(result, p, "")
 	}
@@ -69,7 +75,7 @@ func (m *Model) GenerateResponse(prompt string, temp float64) ResponseResult {
 		}
 	}
 
-	if match, score := m.Matcher.FindBestMatch(prompt); match != "" && score > 0.4 {
+	if match, score := m.Matcher.FindBestMatch(prompt); match != "" && score > 0.3 {
 		return ResponseResult{
 			Text:       match,
 			Type:       ResponseGenerated,
@@ -115,7 +121,7 @@ func (m *Model) Train(epochs int) {
 		return
 	}
 
-	fmt.Printf("Training on %d conversations for %d epochs...\n", len(m.Conversations), epochs)
+	fmt.Printf("Training neural network on %d conversations for %d epochs...\n", len(m.Conversations), epochs)
 
 	inputs := make([][]int, 0)
 	targets := make([][]int, 0)
@@ -124,11 +130,11 @@ func (m *Model) Train(epochs int) {
 		inputTokens := defaultTokenizer(question)
 		outputTokens := defaultTokenizer(answer)
 
-		if len(inputTokens) > 32 {
-			inputTokens = inputTokens[:32]
+		if len(inputTokens) > config.TrainMaxSeqLen {
+			inputTokens = inputTokens[:config.TrainMaxSeqLen]
 		}
-		if len(outputTokens) > 32 {
-			outputTokens = outputTokens[:32]
+		if len(outputTokens) > config.TrainMaxSeqLen {
+			outputTokens = outputTokens[:config.TrainMaxSeqLen]
 		}
 
 		if len(inputTokens) > 0 && len(outputTokens) > 0 {
@@ -149,7 +155,9 @@ func (m *Model) Train(epochs int) {
 	})
 
 	loss := trainer.Train(epochs, inputs, targets)
-	fmt.Printf("Done! Final loss: %.4f\n", loss)
+	fmt.Printf("Training completed! Final loss: %.4f\n", loss)
+
+	m.SaveModel()
 }
 
 func (m *Model) TrainIncremental() {
@@ -158,8 +166,12 @@ func (m *Model) TrainIncremental() {
 }
 
 func (m *Model) SaveModel() error {
-	fmt.Println("Model weights saved!")
-	return nil
+	fmt.Println("Saving model to", config.ModelFile)
+	return m.Brain.Save(config.ModelFile)
+}
+
+func (m *Model) LoadModel() error {
+	return m.Brain.Load(config.ModelFile)
 }
 
 func defaultTokenizer(text string) []int {

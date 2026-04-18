@@ -12,6 +12,15 @@ func (m *Model) SaveConversation(userInput, botResponse string) error {
 		return err
 	}
 	defer f.Close()
+
+	info, _ := f.Stat()
+	if info.Size() > 0 {
+		_, err = f.WriteString("\n")
+		if err != nil {
+			return err
+		}
+	}
+
 	_, err = f.WriteString(userInput + "|" + botResponse + "\n")
 	return err
 }

@@ -1,5 +1,19 @@
 package neural
 
+import (
+	"encoding/gob"
+	"os"
+)
+
+func init() {
+	gob.Register(&Transformer{})
+	gob.Register(&TransformerBlock{})
+	gob.Register(&MultiHeadAttention{})
+	gob.Register(&FeedForwardLayer{})
+	gob.Register(&EmbeddingLayer{})
+	gob.Register(&OutputLayer{})
+}
+
 func NewTransformer(vocabSize, embedDim, hiddenDim, numHeads, numLayers, maxSeqLen int, dropout float64) *Transformer {
 	blocks := make([]*TransformerBlock, numLayers)
 	for i := 0; i < numLayers; i++ {
@@ -76,4 +90,26 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg I
 		Tokens:     []Token{{ID: tokenID, Prob: probs[tokenID]}},
 		Confidence: probs[tokenID],
 	}
+}
+
+func (t *Transformer) Save(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	return encoder.Encode(t)
+}
+
+func (t *Transformer) Load(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := gob.NewDecoder(file)
+	return decoder.Decode(t)
 }
