@@ -36,6 +36,11 @@ func main() {
 		}
 
 		input := strings.TrimSpace(scanner.Text())
+		input = strings.TrimPrefix(input, "You:")
+		input = strings.TrimSpace(input)
+		input = strings.TrimPrefix(input, "you:")
+		input = strings.TrimSpace(input)
+
 		if input == "" {
 			continue
 		}

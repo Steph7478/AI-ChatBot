@@ -18,5 +18,5 @@ const (
 	MinTemp     = 0.1
 	MaxTemp     = 1.5
 
-	LCSConfidenceThreshold = 0.8
+	LCSConfidenceThreshold = 0.9
 )

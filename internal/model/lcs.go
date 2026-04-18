@@ -1,7 +1,10 @@
 package model
 
 import (
+	"fmt"
 	"strings"
+
+	"chatbot/internal/config"
 )
 
 func NewLCSMatcher() *LCSMatcher {
@@ -13,15 +16,14 @@ func NewLCSMatcher() *LCSMatcher {
 
 func (l *LCSMatcher) tokenize(text string) []string {
 	text = strings.ToLower(text)
-	replacer := strings.NewReplacer(
+	r := strings.NewReplacer(
 		".", " ", "!", " ", "?", " ",
 		",", " ", ";", " ", ":", " ",
 		"\"", " ", "'", " ", "(", " ",
 		")", " ", "[", " ", "]", " ",
 		"{", " ", "}", " ",
 	)
-	text = replacer.Replace(text)
-	return strings.Fields(text)
+	return strings.Fields(r.Replace(text))
 }
 
 func (l *LCSMatcher) lcsLength(a, b []string) int {
@@ -30,7 +32,6 @@ func (l *LCSMatcher) lcsLength(a, b []string) int {
 	for i := range dp {
 		dp[i] = make([]int, n+1)
 	}
-
 	for i := 1; i <= m; i++ {
 		for j := 1; j <= n; j++ {
 			if a[i-1] == b[j-1] {
@@ -44,42 +45,86 @@ func (l *LCSMatcher) lcsLength(a, b []string) int {
 }
 
 func (l *LCSMatcher) lcsSimilarity(a, b []string) float64 {
-	if len(a) == 0 && len(b) == 0 {
-		return 1.0
-	}
-	lcsLen := l.lcsLength(a, b)
 	if len(a) == 0 {
 		return 0
 	}
-	return float64(lcsLen) / float64(len(a))
+
+	lcsLen := l.lcsLength(a, b)
+
+	basePercent := (float64(lcsLen) / float64(len(a))) * 100
+	diffPenalty := 0.0
+	for _, word := range a {
+		found := false
+		for _, w := range b {
+			if word == w {
+				found = true
+				break
+			}
+		}
+		if !found {
+			diffPenalty += 10
+		}
+	}
+
+	prefixBonus := 0.0
+	minLen := min(len(a), len(b))
+	for i := 0; i < minLen && i < len(a) && i < len(b) && a[i] == b[i]; i++ {
+		prefixBonus += 2
+	}
+	if prefixBonus > 10 {
+		prefixBonus = 10
+	}
+
+	score := basePercent - diffPenalty + prefixBonus
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
+	}
+
+	return score / 100
 }
 
 func (l *LCSMatcher) AddDocument(text string, answer []int) {
 	words := l.tokenize(text)
+	fmt.Printf("  📚 [LCS] AddDocument: '%s' -> tokens: %v\n", text, words)
 	l.Documents = append(l.Documents, words)
 	l.Answers = append(l.Answers, answer)
+	fmt.Printf("  📚 [LCS] Now %d documents\n", len(l.Documents))
 }
 
 func (l *LCSMatcher) Predict(query string) []int {
+	fmt.Printf("\n  🔍 [LCS] Predict called with query: '%s'\n", query)
+
 	if len(l.Documents) == 0 {
+		fmt.Printf("  ❌ [LCS] No documents\n")
 		return nil
 	}
 
 	queryWords := l.tokenize(query)
+	fmt.Printf("  🔍 [LCS] Query tokens: %v\n", queryWords)
+
 	bestIdx := -1
 	bestScore := -1.0
 
 	for i, doc := range l.Documents {
 		score := l.lcsSimilarity(queryWords, doc)
+		fmt.Printf("  📊 [LCS] Doc %d: score=%.4f | doc='%v'\n", i, score, doc)
 		if score > bestScore {
 			bestScore = score
 			bestIdx = i
 		}
 	}
 
-	if bestIdx >= 0 {
+	fmt.Printf("  📊 [LCS] Best score: %.4f at index %d\n", bestScore, bestIdx)
+	fmt.Printf("  📊 [LCS] Threshold: %.2f\n", config.LCSConfidenceThreshold)
+
+	if bestIdx >= 0 && bestScore > config.LCSConfidenceThreshold {
+		fmt.Printf("  ✅ [LCS] Returning answer at index %d\n", bestIdx)
 		return l.Answers[bestIdx]
 	}
+	fmt.Printf("  ❌ [LCS] Returning nil (score below threshold)\n")
 	return nil
 }
 
@@ -97,4 +142,18 @@ func (l *LCSMatcher) GetConfidence(query string) float64 {
 		}
 	}
 	return bestScore
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

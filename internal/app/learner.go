@@ -20,7 +20,6 @@ func NewLearner(vocab *dataset.Vocabulary, m *model.Model) *Learner {
 		model: m,
 	}
 }
-
 func (l *Learner) LearnFromUser(scanner *bufio.Scanner, input string) {
 	fmt.Print("📝 Teach me: ")
 	scanner.Scan()
@@ -30,13 +29,11 @@ func (l *Learner) LearnFromUser(scanner *bufio.Scanner, input string) {
 	}
 
 	l.model.LearnFromUser(input, correct)
-
 	convMem := model.NewConversationMemory(l.vocab)
-	convMem.Load("data/checkpoint.gob")
+	for i := 0; i < len(l.model.Dataset.Conversations); i++ {
+		convMem.Learn(l.model.Dataset.Conversations[i][0], l.model.Dataset.Conversations[i][1])
+	}
 
-	userTokens := l.vocab.AddAndTokenize(input)
-	botTokens := l.vocab.AddAndTokenize(correct)
-	convMem.Learn(userTokens, botTokens)
 	convMem.CalculateIDF()
 	convMem.Save("data/checkpoint.gob")
 
