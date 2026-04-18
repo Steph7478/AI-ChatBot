@@ -4,11 +4,6 @@ import (
 	"strings"
 )
 
-type LCSMatcher struct {
-	Documents [][]string
-	Answers   [][]int
-}
-
 func NewLCSMatcher() *LCSMatcher {
 	return &LCSMatcher{
 		Documents: make([][]string, 0),

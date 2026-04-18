@@ -5,12 +5,6 @@ import (
 	"unicode"
 )
 
-type Vocabulary struct {
-	WordToID map[string]int
-	IDToWord map[int]string
-	Size     int
-}
-
 func NewVocabulary() *Vocabulary {
 	v := &Vocabulary{
 		WordToID: make(map[string]int),

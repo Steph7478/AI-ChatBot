@@ -9,17 +9,6 @@ import (
 	"chatbot/internal/dataset"
 )
 
-type ConversationMemory struct {
-	Questions      [][]int
-	Answers        [][]int
-	QuestionText   []string
-	AnswerText     []string
-	Vocab          *dataset.Vocabulary
-	QuestionTF     []map[int]float64
-	IDF            map[int]float64
-	VocabularySize int
-}
-
 func NewConversationMemory(vocab *dataset.Vocabulary) *ConversationMemory {
 	return &ConversationMemory{
 		Questions:      make([][]int, 0),
