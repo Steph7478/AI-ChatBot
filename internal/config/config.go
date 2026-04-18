@@ -29,7 +29,10 @@ const (
 
 // Matching
 const (
-	MinSimilarityScore = 0.5
+	MinSimilarityScore = 0.3
+	ExactWordBonus     = 0.2
+	ContainBonus       = 0.1
+	LengthPenalty      = 0.05
 )
 
 // Commands

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"chatbot/internal/config"
+	"math"
 	"strings"
 )
 
@@ -18,47 +20,70 @@ func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
 	input = strings.ToLower(strings.TrimSpace(input))
 	inputWords := strings.Fields(input)
 
+	if len(inputWords) == 0 {
+		return "", 0
+	}
+
 	bestMatch := ""
 	bestScore := 0.0
 
 	for question, answer := range m.Conversations {
+		question = strings.ToLower(question)
 		questionWords := strings.Fields(question)
 
-		common := 0
-		for _, w1 := range inputWords {
-			for _, w2 := range questionWords {
-				if w1 == w2 || strings.Contains(w1, w2) || strings.Contains(w2, w1) {
-					common++
-					break
-				}
-			}
-		}
+		score := m.calculateMatchScore(inputWords, questionWords)
 
-		totalUnique := len(unique(append(inputWords, questionWords...)))
-		if totalUnique > 0 {
-			score := float64(common) / float64(totalUnique)
-			if score > bestScore {
-				bestScore = score
-				bestMatch = answer
-			}
+		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
+		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
+		lenPenalty := 1.0 - (lenDiff/maxLen)*config.LengthPenalty
+		score = score * lenPenalty
+
+		if score > bestScore {
+			bestScore = score
+			bestMatch = answer
 		}
 	}
 
-	if bestScore < 0.3 {
+	if bestScore < config.MinSimilarityScore {
 		return "", 0
 	}
 
 	return bestMatch, bestScore
 }
 
-func unique(words []string) []string {
-	seen := make(map[string]bool)
-	result := []string{}
-	for _, w := range words {
-		if !seen[w] {
-			seen[w] = true
-			result = append(result, w)
+func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []string) float64 {
+	if len(inputWords) == 0 || len(questionWords) == 0 {
+		return 0
+	}
+
+	totalScore := 0.0
+	matchedInput := make([]bool, len(inputWords))
+	matchedQuestion := make([]bool, len(questionWords))
+
+	for i, w1 := range inputWords {
+		for j, w2 := range questionWords {
+			if !matchedInput[i] && !matchedQuestion[j] && w1 == w2 {
+				totalScore += 1.0 + config.ExactWordBonus
+				matchedInput[i] = true
+				matchedQuestion[j] = true
+				break
+			}
 		}
 	}
-	return result
+
+	for i, w1 := range inputWords {
+		if matchedInput[i] {
+			continue
+		}
+		for j, w2 := range questionWords {
+			if !matchedQuestion[j] && (strings.Contains(w1, w2) || strings.Contains(w2, w1)) {
+				totalScore += 0.5 + config.ContainBonus
+				matchedQuestion[j] = true
+				break
+			}
+		}
+	}
+
+	maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
+	return totalScore / maxLen
 }
