@@ -61,14 +61,10 @@ show_stats() {
     echo
     
     if [ -f "data/model.gob" ]; then
-        CHECK_SIZE=$(du -h data/model.gob 2>/dev/null | cut -f1)
+        MODEL_SIZE=$(du -h data/model.gob 2>/dev/null | cut -f1)
         echo -e "  ${GREEN}✓${NC} ${BOLD}model.gob${NC}"
-        echo -e "    💾 Size: ${CYAN}$CHECK_SIZE${NC}"
-    else
-        echo -e "  ${YELLOW}⚠${NC} No model checkpoint found"
+        echo -e "    💾 Size: ${CYAN}$MODEL_SIZE${NC}"
     fi
-    
-    echo
     
     if [ -f "chatbot" ]; then
         BIN_SIZE=$(du -h chatbot 2>/dev/null | cut -f1)
@@ -185,7 +181,7 @@ show_help() {
     echo
     echo -e "  ${BOLD}${GREEN}Chatbot Commands:${NC}"
     echo -e "    /quit      ${CYAN}→${NC} Exit chatbot"
-    echo -e "    /save      ${CYAN}→${NC} Save model checkpoint"
+    echo -e "    /save      ${CYAN}→${NC} Save model"
     echo -e "    /stats     ${CYAN}→${NC} Show model statistics"
     echo -e "    /temp X    ${CYAN}→${NC} Set temperature (0.1-1.5)"
     echo
@@ -201,7 +197,7 @@ show_help() {
     echo
     echo -e "  ${BOLD}${GREEN}How Learning Works:${NC}"
     echo -e "    1. Neural network generates response"
-    echo -e "    2. If confidence is low (< 0.5), asks for teaching"
+    echo -e "    2. If confidence is low, asks for teaching"
     echo -e "    3. Teaching is saved to conversations.txt"
     echo -e "    4. Model weights saved to model.gob"
     echo
@@ -218,7 +214,7 @@ show_help() {
 start_chatbot() {
     echo
     echo -e "${BOLD}${GREEN}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${GREEN}║           🚀  STARTING CHATBOT            ║${NC}"
+    echo -e "${BOLD}${GREEN}║           🚀  STARTING CHATBOT             ║${NC}"
     echo -e "${BOLD}${GREEN}╚════════════════════════════════════════════╝${NC}"
     echo
     
@@ -272,12 +268,21 @@ start_chatbot() {
         echo -e "  ${GREEN}✅ Compiled${NC}"
     fi
     
+    clear
+    echo -e "${BOLD}${MAGENTA}"
+    echo "    ╔══════════════════════════════════════════════╗"
+    echo "    ║    ☕  NEURAL CHATBOT - READY TO CHAT  ☕    ║"
+    echo "    ╚══════════════════════════════════════════════╝"
+    echo -e "${NC}"
+    echo
+    echo -e "  ${CYAN}💡 Commands:${NC} /quit ${GREEN}|${NC} /save ${GREEN}|${NC} /stats ${GREEN}|${NC} /temp [0.1-1.5]"
     echo
     echo -e "${BOLD}${MAGENTA}════════════════════════════════════════════════${NC}"
-    echo -e "${BOLD}${GREEN}  💬 Type /quit to return to menu${NC}"
+    echo -e "${BOLD}${GREEN}  💬 Start typing your messages below${NC}"
     echo -e "${BOLD}${MAGENTA}════════════════════════════════════════════════${NC}"
     echo
     
+    # Executa o chatbot diretamente (as cores vêm do main.go)
     ./chatbot
     
     echo
@@ -299,7 +304,7 @@ while true; do
         6) show_help ;;
         7) 
             echo
-            echo -e "  ${GREEN}👋 Goodbye! Keep coding! 🧠${NC}"
+            echo -e "  ${GREEN}👋 Goodbye! Keep coding! 🧠☕${NC}"
             exit 0
             ;;
         *) 

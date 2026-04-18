@@ -29,12 +29,15 @@ func main() {
 	fmt.Println(strings.Repeat("=", 50))
 
 	for {
-		fmt.Print("\nYou: ")
+		fmt.Print("\n\033[34mYou: ")
+
 		if !scanner.Scan() {
 			break
 		}
 
 		input := strings.TrimSpace(scanner.Text())
+		fmt.Print("\033[0m")
+
 		if input == "" {
 			continue
 		}
@@ -44,7 +47,7 @@ func main() {
 		}
 
 		result := m.GenerateResponse(input, temp)
-		fmt.Printf("Bot: %s\n", result.Text)
+		fmt.Printf("\033[36mBot: %s\033[0m\n", result.Text)
 
 		if result.Type == model.ResponseFallback {
 			learner.LearnFromUser(scanner, input)
