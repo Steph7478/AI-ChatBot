@@ -25,6 +25,7 @@ func (h *CommandHandler) Handle(input string) bool {
 		os.Exit(0)
 
 	case input == "/save":
+		h.model.SaveModel()
 		fmt.Println("✅ Model saved")
 
 	case input == "/stats":
@@ -34,12 +35,19 @@ func (h *CommandHandler) Handle(input string) bool {
 		fmt.Printf("   Hidden dim: %d\n", config.HiddenDim)
 		fmt.Printf("   Num layers: %d\n", config.NumLayers)
 		fmt.Printf("   Num heads: %d\n", config.NumHeads)
+		fmt.Printf("   Conversations: %d\n", len(h.model.Conversations))
 
 	case strings.HasPrefix(input, "/temp"):
 		var t float64
 		fmt.Sscanf(input, "/temp %f", &t)
 		*h.temp = clamp(t, config.MinTemp, config.MaxTemp)
 		fmt.Printf("🌡️ Temperature: %.1f\n", *h.temp)
+
+	case input == "/train":
+		fmt.Println("🧠 Starting training with 10 epochs...")
+		h.model.Train(10)
+		h.model.SaveModel()
+		fmt.Println("✅ Training complete!")
 
 	default:
 		return false

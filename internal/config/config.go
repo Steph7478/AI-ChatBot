@@ -1,3 +1,4 @@
+// internal/config/config.go
 package config
 
 // File paths
@@ -40,4 +41,13 @@ const (
 	DefaultTemp = 0.7
 	MinTemp     = 0.1
 	MaxTemp     = 1.5
+)
+
+// Training
+const (
+	LearningRate   = 0.00001
+	BatchSize      = 4
+	TrainMaxSeqLen = 32
+	GradientClip   = 0.1
+	Epsilon        = 1e-7
 )

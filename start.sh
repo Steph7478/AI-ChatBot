@@ -29,9 +29,10 @@ show_menu() {
     echo -e "    ${GREEN}2)${NC} 📊 Show Statistics"
     echo -e "    ${GREEN}3)${NC} ✏️  Edit conversations.txt"
     echo -e "    ${GREEN}4)${NC} 🗑️  Delete Model (reset learning)"
-    echo -e "    ${GREEN}5)${NC} 🔧 Recompile"
-    echo -e "    ${GREEN}6)${NC} ❓ Show Help"
-    echo -e "    ${GREEN}7)${NC} 👋 Exit"
+    echo -e "    ${GREEN}5)${NC} 🧠 Train Neural Network"
+    echo -e "    ${GREEN}6)${NC} 🔧 Recompile"
+    echo -e "    ${GREEN}7)${NC} ❓ Show Help"
+    echo -e "    ${GREEN}8)${NC} 👋 Exit"
     echo
     echo -ne "${YELLOW}➜${NC} "
 }
@@ -45,7 +46,6 @@ show_stats() {
     echo
     
     if [ -f "data/conversations.txt" ]; then
-        # Conta linhas que não são comentários nem vazias
         CONV_COUNT=$(grep -c "|" data/conversations.txt 2>/dev/null || echo "0")
         FILE_SIZE=$(du -h data/conversations.txt 2>/dev/null | cut -f1)
         
@@ -53,7 +53,6 @@ show_stats() {
         echo -e "    📝 Conversations: ${CYAN}$CONV_COUNT${NC}"
         echo -e "    💾 Size: ${CYAN}$FILE_SIZE${NC}"
         
-        # Mostra últimas 3 conversas
         if [ $CONV_COUNT -gt 0 ]; then
             echo
             echo -e "  ${CYAN}📋 Last conversations:${NC}"
@@ -151,6 +150,59 @@ delete_model() {
     read -p "  Press Enter to continue..."
 }
 
+# Train model
+train_model() {
+    echo
+    echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════╗${NC}"
+    echo -e "${BOLD}${CYAN}║           🧠  TRAIN NEURAL NETWORK         ║${NC}"
+    echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════╝${NC}"
+    echo
+    
+    if [ ! -f "data/conversations.txt" ]; then
+        echo -e "  ${RED}❌ No conversations.txt found!${NC}"
+        echo -e "  ${YELLOW}💡 Please add some conversations first${NC}"
+        read -p "  Press Enter to continue..."
+        return
+    fi
+    
+    CONV_COUNT=$(grep -c "|" data/conversations.txt 2>/dev/null || echo "0")
+    if [ "$CONV_COUNT" -eq 0 ]; then
+        echo -e "  ${RED}❌ No valid conversations found!${NC}"
+        echo -e "  ${YELLOW}💡 Add lines with format: question|answer${NC}"
+        read -p "  Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "  ${GREEN}✓${NC} Found ${CYAN}$CONV_COUNT${NC} conversations"
+    echo
+    echo -e "  ${YELLOW}How many epochs? (recommended: 10-100)${NC}"
+    echo -e "  ${CYAN}💡 More epochs = better learning but slower${NC}"
+    read -p "  ➜ " epochs
+    
+    if ! [[ "$epochs" =~ ^[0-9]+$ ]]; then
+        echo -e "  ${RED}❌ Invalid number!${NC}"
+        read -p "  Press Enter to continue..."
+        return
+    fi
+    
+    echo
+    echo -e "  ${BLUE}🧠 Training for $epochs epochs...${NC}"
+    echo -e "  ${YELLOW}This may take a while...${NC}"
+    echo
+    
+    ./chatbot -train "$epochs"
+    
+    if [ $? -eq 0 ]; then
+        echo
+        echo -e "  ${GREEN}✅ Training completed successfully!${NC}"
+    else
+        echo
+        echo -e "  ${RED}❌ Training failed!${NC}"
+    fi
+    
+    read -p "  Press Enter to continue..."
+}
+
 # Recompile
 recompile() {
     echo
@@ -194,6 +246,10 @@ show_help() {
     echo -e "    /stats     ${CYAN}→${NC} Show model statistics"
     echo -e "    /temp X    ${CYAN}→${NC} Set temperature (0.1-1.5)"
     echo
+    echo -e "  ${BOLD}${GREEN}Training Options:${NC}"
+    echo -e "    ${CYAN}Option 5 in menu${NC} → Train neural network with X epochs"
+    echo -e "    ${CYAN}./chatbot -train 50${NC} → Train from command line"
+    echo
     echo -e "  ${BOLD}${GREEN}Model Architecture:${NC}"
     echo -e "    • Transformer with Multi-Head Attention"
     echo -e "    • Vocab: 10,000 | Embedding: 128-dim"
@@ -207,13 +263,13 @@ show_help() {
     echo -e "    1. Neural network generates response"
     echo -e "    2. If confidence is low, asks for teaching"
     echo -e "    3. Teaching is saved to conversations.txt (pipe format)"
-    echo -e "    4. Model weights saved to model.gob"
+    echo -e "    4. Run training to update neural weights"
     echo
     echo -e "  ${BOLD}${GREEN}Tips:${NC}"
     echo -e "    • More conversations = better responses"
+    echo -e "    • Train after adding new conversations"
     echo -e "    • Lower temperature = more predictable"
     echo -e "    • Higher temperature = more creative"
-    echo -e "    • Model learns from every interaction"
     echo
     read -p "  Press Enter to continue..."
 }
@@ -306,9 +362,10 @@ while true; do
         2) show_stats ;;
         3) edit_conversations ;;
         4) delete_model ;;
-        5) recompile ;;
-        6) show_help ;;
-        7) 
+        5) train_model ;;
+        6) recompile ;;
+        7) show_help ;;
+        8) 
             echo
             echo -e "  ${GREEN}👋 Goodbye! Keep coding! 🧠☕${NC}"
             exit 0

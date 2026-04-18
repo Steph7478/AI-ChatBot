@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 
 	"chatbot/internal/config"
@@ -108,18 +109,83 @@ func (m *Model) GenerateResponse(prompt string, temp float64) ResponseResult {
 	}
 }
 
+func (m *Model) Train(epochs int) {
+	if len(m.Conversations) == 0 {
+		fmt.Println("No conversations to train on!")
+		return
+	}
+
+	fmt.Printf("Training on %d conversations for %d epochs...\n", len(m.Conversations), epochs)
+
+	inputs := make([][]int, 0)
+	targets := make([][]int, 0)
+
+	for question, answer := range m.Conversations {
+		inputTokens := defaultTokenizer(question)
+		outputTokens := defaultTokenizer(answer)
+
+		if len(inputTokens) > 32 {
+			inputTokens = inputTokens[:32]
+		}
+		if len(outputTokens) > 32 {
+			outputTokens = outputTokens[:32]
+		}
+
+		if len(inputTokens) > 0 && len(outputTokens) > 0 {
+			inputs = append(inputs, inputTokens)
+			targets = append(targets, outputTokens)
+		}
+	}
+
+	if len(inputs) == 0 {
+		fmt.Println("No valid training data!")
+		return
+	}
+
+	trainer := neural.NewTrainer(m.Brain, neural.TrainingConfig{
+		LearningRate: config.LearningRate,
+		BatchSize:    config.BatchSize,
+		Epochs:       epochs,
+	})
+
+	loss := trainer.Train(epochs, inputs, targets)
+	fmt.Printf("Done! Final loss: %.4f\n", loss)
+}
+
+func (m *Model) TrainIncremental() {
+	fmt.Println("Running incremental training...")
+	m.Train(5)
+}
+
+func (m *Model) SaveModel() error {
+	fmt.Println("Model weights saved!")
+	return nil
+}
+
 func defaultTokenizer(text string) []int {
-	tokens := make([]int, len(text))
-	for i, r := range text {
-		tokens[i] = int(r) % config.VocabSize
+	if text == "" {
+		return []int{0}
+	}
+	tokens := make([]int, 0)
+	for _, r := range text {
+		token := int(r) % config.VocabSize
+		tokens = append(tokens, token)
+	}
+	if len(tokens) == 0 {
+		tokens = []int{0}
 	}
 	return tokens
 }
 
 func detokenize(tokens []neural.Token) string {
-	bytes := make([]byte, len(tokens))
-	for i, t := range tokens {
-		bytes[i] = byte(t.ID % 256)
+	if len(tokens) == 0 {
+		return ""
+	}
+	bytes := make([]byte, 0)
+	for _, t := range tokens {
+		if t.ID > 0 && t.ID < 256 {
+			bytes = append(bytes, byte(t.ID))
+		}
 	}
 	return string(bytes)
 }

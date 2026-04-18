@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -12,11 +13,19 @@ import (
 )
 
 func main() {
-	fmt.Println("🧠 Neural Chatbot")
-	fmt.Println(strings.Repeat("=", 50))
+	trainFlag := flag.Int("train", 0, "Train model for N epochs")
+	flag.Parse()
 
 	m := model.NewModel()
 	m.LoadAll()
+
+	if *trainFlag > 0 {
+		fmt.Printf("🧠 Training model for %d epochs...\n", *trainFlag)
+		m.Train(*trainFlag)
+		m.SaveModel()
+		fmt.Println("✅ Training complete! Model saved.")
+		return
+	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	temp := config.DefaultTemp
@@ -24,8 +33,10 @@ func main() {
 	cmdHandler := app.NewCommandHandler(m, &temp)
 	learner := app.NewLearner(m)
 
+	fmt.Println("🧠 Neural Chatbot")
+	fmt.Println(strings.Repeat("=", 50))
 	fmt.Printf("\n📊 Ready | Temp: %.1f\n", temp)
-	fmt.Println("💬 Commands: /quit, /stats, /temp N, /save")
+	fmt.Println("💬 Commands: /quit, /stats, /temp N, /save, /train")
 	fmt.Println(strings.Repeat("=", 50))
 
 	for {

@@ -5,10 +5,6 @@ import (
 	"math/rand/v2"
 )
 
-type EmbeddingLayer struct {
-	Weights [][]float64
-}
-
 func NewEmbeddingLayer(vocabSize, dim int) *EmbeddingLayer {
 	return &EmbeddingLayer{
 		Weights: newMatrix(vocabSize, dim),
@@ -16,10 +12,14 @@ func NewEmbeddingLayer(vocabSize, dim int) *EmbeddingLayer {
 }
 
 func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
+	if len(ids) == 0 {
+		return [][]float64{}
+	}
 	embeddings := make([][]float64, len(ids))
 	for i, id := range ids {
 		if id >= 0 && id < len(e.Weights) {
-			embeddings[i] = e.Weights[id]
+			embeddings[i] = make([]float64, len(e.Weights[id]))
+			copy(embeddings[i], e.Weights[id])
 		} else {
 			embeddings[i] = make([]float64, len(e.Weights[0]))
 		}
@@ -28,10 +28,13 @@ func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
 }
 
 func positionalEncoding(seqLen, dim int) [][]float64 {
+	if seqLen == 0 {
+		return [][]float64{}
+	}
 	pe := make([][]float64, seqLen)
-	for i := range seqLen {
+	for i := 0; i < seqLen; i++ {
 		pe[i] = make([]float64, dim)
-		for j := range dim {
+		for j := 0; j < dim; j++ {
 			if j%2 == 0 {
 				pe[i][j] = math.Sin(float64(i) / math.Pow(10000, float64(j)/float64(dim)))
 			} else {
@@ -43,10 +46,13 @@ func positionalEncoding(seqLen, dim int) [][]float64 {
 }
 
 func newMatrix(rows, cols int) [][]float64 {
+	if rows == 0 || cols == 0 {
+		return [][]float64{}
+	}
 	m := make([][]float64, rows)
-	for i := range m {
+	for i := range rows {
 		m[i] = make([]float64, cols)
-		for j := range m[i] {
+		for j := range cols {
 			m[i][j] = (rand.Float64() - 0.5) * 0.01
 		}
 	}

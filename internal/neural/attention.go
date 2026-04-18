@@ -4,13 +4,6 @@ import (
 	"math"
 )
 
-type MultiHeadAttention struct {
-	NumHeads   int
-	HeadDim    int
-	WQ, WK, WV [][]float64
-	WO         [][]float64
-}
-
 func NewMultiHeadAttention(embedDim, numHeads int) *MultiHeadAttention {
 	headDim := embedDim / numHeads
 
@@ -25,6 +18,9 @@ func NewMultiHeadAttention(embedDim, numHeads int) *MultiHeadAttention {
 }
 
 func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
+	if len(x) == 0 {
+		return [][]float64{}
+	}
 	q := matMul(x, m.WQ)
 	k := matMul(x, m.WK)
 	v := matMul(x, m.WV)
@@ -43,7 +39,42 @@ func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
 	return matMul(concat, m.WO)
 }
 
+func (m *MultiHeadAttention) Backward(grad [][]float64, grads map[string][][]float64, layerIdx int) [][]float64 {
+	if len(grad) == 0 {
+		return grad
+	}
+
+	woGrad := matMul(transpose(grad), m.WO)
+	grads[attnKey(layerIdx, "wo")] = woGrad
+
+	gradHeads := splitHeads(grad, m.NumHeads, m.HeadDim)
+
+	headGrads := make([][][]float64, m.NumHeads)
+	for h := 0; h < m.NumHeads && h < len(gradHeads); h++ {
+		headGrads[h] = gradHeads[h]
+	}
+
+	combinedGrad := concatHeads(headGrads)
+
+	if len(combinedGrad) == 0 {
+		return grad
+	}
+
+	wqGrad := matMul(transpose(combinedGrad), m.WQ)
+	wkGrad := matMul(transpose(combinedGrad), m.WK)
+	wvGrad := matMul(transpose(combinedGrad), m.WV)
+
+	grads[attnKey(layerIdx, "wq")] = wqGrad
+	grads[attnKey(layerIdx, "wk")] = wkGrad
+	grads[attnKey(layerIdx, "wv")] = wvGrad
+
+	return combinedGrad
+}
+
 func splitHeads(mat [][]float64, numHeads, headDim int) [][][]float64 {
+	if len(mat) == 0 {
+		return [][][]float64{}
+	}
 	seqLen := len(mat)
 	heads := make([][][]float64, numHeads)
 
@@ -52,7 +83,9 @@ func splitHeads(mat [][]float64, numHeads, headDim int) [][][]float64 {
 		for i := range seqLen {
 			heads[h][i] = make([]float64, headDim)
 			for j := range headDim {
-				heads[h][i][j] = mat[i][h*headDim+j]
+				if h*headDim+j < len(mat[i]) {
+					heads[h][i][j] = mat[i][h*headDim+j]
+				}
 			}
 		}
 	}
@@ -60,6 +93,9 @@ func splitHeads(mat [][]float64, numHeads, headDim int) [][][]float64 {
 }
 
 func attentionScore(q, k [][]float64, headDim int) [][]float64 {
+	if len(q) == 0 || len(k) == 0 {
+		return [][]float64{}
+	}
 	scores := matMul(q, transpose(k))
 	scale := 1.0 / math.Sqrt(float64(headDim))
 
@@ -71,21 +107,10 @@ func attentionScore(q, k [][]float64, headDim int) [][]float64 {
 	return softmax2d(scores)
 }
 
-func transpose(mat [][]float64) [][]float64 {
-	if len(mat) == 0 {
+func concatHeads(heads [][][]float64) [][]float64 {
+	if len(heads) == 0 || len(heads[0]) == 0 {
 		return [][]float64{}
 	}
-	result := make([][]float64, len(mat[0]))
-	for i := range result {
-		result[i] = make([]float64, len(mat))
-		for j := range mat {
-			result[i][j] = mat[j][i]
-		}
-	}
-	return result
-}
-
-func concatHeads(heads [][][]float64) [][]float64 {
 	seqLen := len(heads[0])
 	embedDim := len(heads[0][0]) * len(heads)
 
@@ -101,4 +126,8 @@ func concatHeads(heads [][][]float64) [][]float64 {
 		}
 	}
 	return result
+}
+
+func attnKey(layer int, name string) string {
+	return "attn_" + name + "_" + string(rune(layer+48))
 }
