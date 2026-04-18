@@ -360,20 +360,6 @@ EOF
                 echo -e "${GREEN}✅ Created example conversations.txt${NC}"
             fi
             
-            # Check if knowledge.txt exists
-            if [ ! -f "data/knowledge.txt" ]; then
-                echo -e "${YELLOW}⚠️  data/knowledge.txt not found! Creating example...${NC}"
-                cat > data/knowledge.txt << 'EOF'
-# Java Knowledge Base
-java is the most amazing programming language
-java runs on over 3 billion devices
-james gosling created java in 1991
-the jvm is the heart of java
-spring boot makes java web development easy
-EOF
-                echo -e "${GREEN}✅ Created example knowledge.txt${NC}"
-            fi
-            
             # Check if learned.txt exists
             if [ ! -f "data/learned.txt" ]; then
                 touch data/learned.txt
