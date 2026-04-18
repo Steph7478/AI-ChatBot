@@ -3,6 +3,7 @@ package model
 import (
 	"strings"
 
+	"chatbot/internal/config"
 	"chatbot/internal/dataset"
 )
 
@@ -32,7 +33,7 @@ func (m *Model) FindResponse(question string, temp float64) ResponseResult {
 	}
 
 	conf := m.LCS.GetConfidence(question)
-	if conf > 0.7 {
+	if conf > config.LCSConfidenceThreshold {
 		if resp := m.LCS.Predict(question); resp != nil {
 			return ResponseResult{m.Vocab.Detokenize(resp), ResponseDataset, conf}
 		}

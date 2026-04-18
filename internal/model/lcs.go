@@ -48,11 +48,10 @@ func (l *LCSMatcher) lcsSimilarity(a, b []string) float64 {
 		return 1.0
 	}
 	lcsLen := l.lcsLength(a, b)
-	maxLen := max(len(a), len(b))
-	if maxLen == 0 {
+	if len(a) == 0 {
 		return 0
 	}
-	return float64(lcsLen) / float64(maxLen)
+	return float64(lcsLen) / float64(len(a))
 }
 
 func (l *LCSMatcher) AddDocument(text string, answer []int) {
