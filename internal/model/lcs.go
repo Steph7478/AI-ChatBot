@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"strings"
 
 	"chatbot/internal/config"
@@ -88,43 +87,30 @@ func (l *LCSMatcher) lcsSimilarity(a, b []string) float64 {
 
 func (l *LCSMatcher) AddDocument(text string, answer []int) {
 	words := l.tokenize(text)
-	fmt.Printf("  📚 [LCS] AddDocument: '%s' -> tokens: %v\n", text, words)
 	l.Documents = append(l.Documents, words)
 	l.Answers = append(l.Answers, answer)
-	fmt.Printf("  📚 [LCS] Now %d documents\n", len(l.Documents))
 }
 
 func (l *LCSMatcher) Predict(query string) []int {
-	fmt.Printf("\n  🔍 [LCS] Predict called with query: '%s'\n", query)
-
 	if len(l.Documents) == 0 {
-		fmt.Printf("  ❌ [LCS] No documents\n")
 		return nil
 	}
 
 	queryWords := l.tokenize(query)
-	fmt.Printf("  🔍 [LCS] Query tokens: %v\n", queryWords)
-
 	bestIdx := -1
 	bestScore := -1.0
 
 	for i, doc := range l.Documents {
 		score := l.lcsSimilarity(queryWords, doc)
-		fmt.Printf("  📊 [LCS] Doc %d: score=%.4f | doc='%v'\n", i, score, doc)
 		if score > bestScore {
 			bestScore = score
 			bestIdx = i
 		}
 	}
 
-	fmt.Printf("  📊 [LCS] Best score: %.4f at index %d\n", bestScore, bestIdx)
-	fmt.Printf("  📊 [LCS] Threshold: %.2f\n", config.LCSConfidenceThreshold)
-
 	if bestIdx >= 0 && bestScore > config.LCSConfidenceThreshold {
-		fmt.Printf("  ✅ [LCS] Returning answer at index %d\n", bestIdx)
 		return l.Answers[bestIdx]
 	}
-	fmt.Printf("  ❌ [LCS] Returning nil (score below threshold)\n")
 	return nil
 }
 
@@ -142,18 +128,4 @@ func (l *LCSMatcher) GetConfidence(query string) float64 {
 		}
 	}
 	return bestScore
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
