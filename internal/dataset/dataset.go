@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"os"
 	"strings"
-	"unicode"
 )
 
 func NewDataset(vocab *Vocabulary) *Dataset {
@@ -15,44 +14,39 @@ func NewDataset(vocab *Vocabulary) *Dataset {
 }
 
 func (d *Dataset) LoadFromFile(filename string) error {
-	file, err := os.Open(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	scanner := bufio.NewScanner(file)
-	var currentUser string
-	var currentBot string
+	scanner := bufio.NewScanner(f)
+	var user, bot string
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-
 		if line == "" {
-			if currentUser != "" && currentBot != "" {
-				d.AddConversation(currentUser, currentBot)
-				currentUser = ""
-				currentBot = ""
+			if user != "" && bot != "" {
+				d.AddConversation(user, bot)
+				user, bot = "", ""
 			}
 			continue
 		}
 
 		if strings.HasPrefix(line, "User:") {
-			if currentUser != "" && currentBot != "" {
-				d.AddConversation(currentUser, currentBot)
-				currentUser = ""
-				currentBot = ""
+			if user != "" && bot != "" {
+				d.AddConversation(user, bot)
+				user, bot = "", ""
 			}
-			currentUser = strings.TrimSpace(strings.TrimPrefix(line, "User:"))
+			user = strings.TrimSpace(strings.TrimPrefix(line, "User:"))
 		} else if after, ok := strings.CutPrefix(line, "Bot:"); ok {
-			currentBot = strings.TrimSpace(after)
+			bot = strings.TrimSpace(after)
 		}
 	}
 
-	if currentUser != "" && currentBot != "" {
-		d.AddConversation(currentUser, currentBot)
+	if user != "" && bot != "" {
+		d.AddConversation(user, bot)
 	}
-
 	return scanner.Err()
 }
 
@@ -63,50 +57,18 @@ func (d *Dataset) AddConversation(userMsg, botMsg string) {
 }
 
 func (d *Dataset) tokenizeAndAdd(text string) []int {
-	words := tokenizeText(text)
-	tokens := make([]int, 0, len(words))
-	for _, word := range words {
-		id := d.Vocab.AddWord(word)
-		tokens = append(tokens, id)
+	words := tokenize(text)
+	tokens := make([]int, len(words))
+	for i, w := range words {
+		tokens[i] = d.Vocab.AddWord(w)
 	}
 	return tokens
 }
 
 func (d *Dataset) Tokenize(text string) []int {
-	words := tokenizeText(text)
-	tokens := make([]int, 0, len(words))
-	for _, word := range words {
-		tokens = append(tokens, d.Vocab.GetID(word))
-	}
-	return tokens
+	return d.Vocab.Tokenize(text)
 }
 
 func (d *Dataset) Detokenize(tokens []int) string {
 	return d.Vocab.Detokenize(tokens)
-}
-
-func tokenizeText(text string) []string {
-	text = strings.ToLower(text)
-
-	var result strings.Builder
-	for _, r := range text {
-		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == ' ' {
-			result.WriteRune(r)
-		} else {
-			result.WriteRune(' ')
-		}
-	}
-
-	return strings.Fields(result.String())
-}
-
-func (d *Dataset) GetConversationCount() int {
-	return len(d.Conversations)
-}
-
-func (d *Dataset) GetConversation(index int) ([]int, []int, bool) {
-	if index < 0 || index >= len(d.Conversations) {
-		return nil, nil, false
-	}
-	return d.Conversations[index][0], d.Conversations[index][1], true
 }

@@ -1,12 +1,13 @@
 # ☕ Java Chatbot - AI-Powered Java Assistant
 
-A lightweight retrieval-based chatbot specialized in the Java programming language. Built with pure Go, this chatbot learns from conversations and uses TF-IDF similarity to find the most relevant answers.
+A lightweight retrieval-based chatbot specialized in the Java programming language. Built with pure Go, this chatbot learns from conversations and uses LCS (Longest Common Subsequence) similarity to find the most relevant answers.
 
 ## Features
 
 - Lightweight - Runs on any PC including old hardware with minimal RAM usage
 - Persistent Memory - Saves learned conversations to checkpoint files for instant loading
-- TF-IDF Similarity - Intelligent answer matching based on word importance
+- LCS Similarity - Intelligent answer matching based on word sequence importance
+- Fallback Learning - Learns new answers directly from users when it doesn't know something
 - Zero Dependencies - Pure Go implementation no external libraries or GPU required
 - Comprehensive Java Knowledge - Covers history syntax JVM frameworks testing microservices and career
 - Fun Personality - Enthusiastic Java fanatic who absolutely loves Java and playfully teases Python (all in good fun!)
@@ -25,7 +26,13 @@ A lightweight retrieval-based chatbot specialized in the Java programming langua
 
 ## How It Works
 
-The chatbot reads conversations from a text file where each conversation has a User question and a Bot answer. It then builds a vocabulary and calculates TF-IDF vectors for each question. When you ask something, it converts your question to a vector and finds the most similar question in memory using cosine similarity, then returns the corresponding answer. All learned data is saved to a checkpoint file for instant loading on next startup.
+The chatbot reads conversations from a text file where each conversation has a User question and a Bot answer. It then builds a vocabulary and uses LCS (Longest Common Subsequence) to find the most similar question in memory. When you ask something, it compares the sequence of words and returns the corresponding answer. If no match is found with high confidence, the chatbot asks you to teach the correct answer, which is then saved for future use. All learned data is saved to a checkpoint file for instant loading on next startup.
+
+### Matching Strategy
+
+1. **Exact Match** - Returns the exact answer if the question exists
+2. **LCS Similarity** - Finds the most similar question based on word sequence (threshold > 0.7)
+3. **Fallback Learning** - Asks the user to teach when no match is found
 
 ## Topics Covered
 
@@ -53,6 +60,14 @@ This chatbot has a strong personality! It absolutely LOVES Java and playfully te
 
 The bot is designed to be fun and engaging while still providing accurate technical information about Java. It's perfect for learning Java with a smile on your face!
 
-## Configuration
+## Conversation File Format
 
-Edit internal/config/config.go to adjust behavior including similarity threshold for match precision temperature for response randomness and top K candidates for answer selection.
+```txt
+User: what is java?
+Bot: java is a programming language created by james gosling
+
+User: who created java?
+Bot: james gosling created java at sun microsystems
+
+(blank line between conversations)
+```
