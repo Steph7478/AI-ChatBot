@@ -24,7 +24,7 @@ const (
 )
 
 const (
-	MinSimilarityScore = 0.5
+	MinSimilarityScore = 0.8
 	ExactWordBonus     = 0.3
 	ContainBonus       = 0.2
 	LengthPenalty      = 0.03
