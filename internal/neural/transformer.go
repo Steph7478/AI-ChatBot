@@ -92,10 +92,8 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg I
 
 		probs := softmax(lastLogits)
 
-		// PENALIDADE DE REPETIÇÃO AUMENTADA
 		for i := range probs {
 			if count, exists := recentTokens[i]; exists && count > 0 {
-				// Quanto mais repetiu, menor a chance (penalidade mais forte)
 				probs[i] = probs[i] / float64(1+count*3)
 			}
 		}

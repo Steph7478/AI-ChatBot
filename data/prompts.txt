@@ -2,7 +2,8 @@ hi|hi|hello|hey|hola|sup|howdy|good morning|good afternoon|good evening
 java vs python|java vs python|java or python|which is better java or python|why is java better|java is better than python|python is slow|java is faster|java is verbose
 tell me a joke|tell me a joke|say something funny|make me laugh|another joke
 should i learn java|should i learn java|is java worth learning|learn java|java vs go|go vs java|java vs rust|rust vs java
-what do you think of javascript|what do you think of javascript|javascript opinion|i love python|python is good
+what do you think of javascript|what do you think of javascript|javascript opinion
+i love python|i love python|python is good|python is awesome
 goodbye|goodbye|bye|see you later|cya|farewell|take care
 thank you|thank you|thanks|appreciate it
 are you a bot|are you a bot|what are you|who are you|what can you do|your capabilities|do you have feelings|can you feel

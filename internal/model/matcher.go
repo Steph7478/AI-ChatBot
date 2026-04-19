@@ -60,7 +60,7 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 	for i, w1 := range inputWords {
 		for j, w2 := range questionWords {
 			if !matchedInput[i] && !matchedQuestion[j] && w1 == w2 {
-				totalScore += 1.0 + config.ExactWordBonus
+				totalScore += 1.0
 				matchedInput[i] = true
 				matchedQuestion[j] = true
 				break
@@ -74,13 +74,38 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 		}
 		for j, w2 := range questionWords {
 			if !matchedQuestion[j] && (strings.Contains(w1, w2) || strings.Contains(w2, w1)) {
-				totalScore += 0.5 + config.ContainBonus
+				totalScore += 0.5
 				matchedQuestion[j] = true
 				break
 			}
 		}
 	}
 
-	maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
-	return totalScore / maxLen
+	maxPossible := float64(len(questionWords))
+	if maxPossible == 0 {
+		return 0
+	}
+
+	score := totalScore / maxPossible
+	if score > 1.0 {
+		score = 1.0
+	}
+	return score
+}
+
+func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]string) string {
+	input = strings.ToLower(strings.TrimSpace(input))
+
+	if mainPhrase, exists := synonyms[input]; exists {
+		return mainPhrase
+	}
+
+	words := strings.Fields(input)
+	for _, word := range words {
+		if mainPhrase, exists := synonyms[word]; exists {
+			return mainPhrase
+		}
+	}
+
+	return input
 }
