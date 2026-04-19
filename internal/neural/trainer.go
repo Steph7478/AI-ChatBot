@@ -15,9 +15,9 @@ func (t *Trainer) Train(epochs int, inputs, targets [][]int) float64 {
 	}
 	fmt.Printf("Training: %d samples, %d epochs, LR=%.6f\n", len(inputs), epochs, t.Config.LearningRate)
 	bestLoss, bestEpoch, wait := math.MaxFloat64, 0, 0
-	for epoch := 0; epoch < epochs; epoch++ {
+	for epoch := range epochs {
 		epochLoss := 0.0
-		for idx := 0; idx < len(inputs); idx++ {
+		for idx := range inputs {
 			if len(inputs[idx]) == 0 || len(targets[idx]) == 0 {
 				continue
 			}

@@ -32,8 +32,8 @@ func positionalEncoding(seqLen, dim int) [][]float64 {
 		return c
 	}
 	pe := zeros(seqLen, dim)
-	for i := 0; i < seqLen; i++ {
-		for j := 0; j < dim; j++ {
+	for i := range seqLen {
+		for j := range dim {
 			if j%2 == 0 {
 				pe[i][j] = math.Sin(float64(i) / math.Pow(10000, float64(j)/float64(dim)))
 			} else {

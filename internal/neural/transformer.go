@@ -16,7 +16,7 @@ func init() {
 
 func NewTransformer(vocabSize, embedDim, hiddenDim, numHeads, numLayers, maxSeqLen int, dropout float64) *Transformer {
 	blocks := make([]*TransformerBlock, numLayers)
-	for i := 0; i < numLayers; i++ {
+	for i := range numLayers {
 		blocks[i] = &TransformerBlock{
 			Attention: NewMultiHeadAttention(embedDim, numHeads),
 			FFN:       NewFeedForwardLayer(embedDim, hiddenDim),
