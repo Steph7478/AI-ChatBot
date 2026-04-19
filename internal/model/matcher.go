@@ -11,16 +11,25 @@ func NewSimpleTextMatcher(conversations map[string]string) *SimpleTextMatcher {
 	return &SimpleTextMatcher{Conversations: conversations}
 }
 
+func normalize(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	s = strings.TrimRight(s, ".,!?;:")
+	return s
+}
+
 func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
-	input = strings.ToLower(strings.TrimSpace(input))
-	inputWords := strings.Fields(input)
+	normalizedInput := normalize(input)
+	inputWords := strings.Fields(normalizedInput)
+
 	if len(inputWords) == 0 {
 		return "", 0
 	}
 
 	bestMatch, bestScore := "", 0.0
 	for question, answer := range m.Conversations {
-		questionWords := strings.Fields(strings.ToLower(question))
+		normalizedQuestion := normalize(question)
+		questionWords := strings.Fields(normalizedQuestion)
+
 		score := m.calculateMatchScore(inputWords, questionWords)
 		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
 		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
@@ -77,11 +86,12 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 }
 
 func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]string) string {
-	input = strings.ToLower(strings.TrimSpace(input))
-	if mainPhrase, exists := synonyms[input]; exists {
+	normalizedInput := normalize(input)
+
+	if mainPhrase, exists := synonyms[normalizedInput]; exists {
 		return mainPhrase
 	}
-	for _, word := range strings.Fields(input) {
+	for _, word := range strings.Fields(normalizedInput) {
 		if mainPhrase, exists := synonyms[word]; exists {
 			return mainPhrase
 		}
