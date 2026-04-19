@@ -18,11 +18,7 @@ const (
 func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Scanner) ResponseResult {
 	originalPrompt := prompt
 
-	if mainPhrase, exists := m.Synonyms[prompt]; exists {
-		prompt = mainPhrase
-	}
-
-	if response, exists := m.Conversations[prompt]; exists {
+	if response, exists := m.Conversations[originalPrompt]; exists {
 		fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
 		fmt.Printf("%s[exact match]%s\n", gray, reset)
 		return ResponseResult{
@@ -31,7 +27,8 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 			Confidence: 0.95,
 		}
 	}
-	if match, score := m.Matcher.FindBestMatch(prompt); match != "" && score > config.MinSimilarityScore {
+
+	if match, score := m.Matcher.FindBestMatch(originalPrompt); match != "" && score > config.MinSimilarityScore {
 		fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
 		fmt.Printf("%s[fuzzy match - %.1f%%]%s\n", gray, score*100, reset)
 		return ResponseResult{
@@ -41,14 +38,24 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 		}
 	}
 
-	if originalPrompt != prompt {
-		if response, exists := m.Conversations[originalPrompt]; exists {
+	resolved := m.Matcher.ResolveSynonyms(originalPrompt, m.Synonyms)
+	if resolved != originalPrompt {
+		if response, exists := m.Conversations[resolved]; exists {
 			fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
-			fmt.Printf("%s[exact match via synonym]%s\n", gray, reset)
+			fmt.Printf("%s[synonym match]%s\n", gray, reset)
 			return ResponseResult{
 				Text:       response,
 				Type:       ResponseGenerated,
 				Confidence: 0.95,
+			}
+		}
+		if match, score := m.Matcher.FindBestMatch(resolved); match != "" && score > config.MinSimilarityScore {
+			fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
+			fmt.Printf("%s[synonym fuzzy - %.1f%%]%s\n", gray, score*100, reset)
+			return ResponseResult{
+				Text:       match,
+				Type:       ResponseGenerated,
+				Confidence: score,
 			}
 		}
 	}
@@ -110,7 +117,6 @@ func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
 	}
 
 	resp := m.Brain.Generate(prompt, defaultTokenizer, cfg)
-
 	response := detokenize(resp.Tokens)
 
 	words := strings.Fields(response)
