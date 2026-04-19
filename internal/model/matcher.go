@@ -91,7 +91,7 @@ func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]st
 	if mainPhrase, exists := synonyms[normalizedInput]; exists {
 		return mainPhrase
 	}
-	for _, word := range strings.Fields(normalizedInput) {
+	for word := range strings.FieldsSeq(normalizedInput) {
 		if mainPhrase, exists := synonyms[word]; exists {
 			return mainPhrase
 		}

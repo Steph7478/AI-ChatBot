@@ -1,11 +1,15 @@
-hi|hi|hello|hey|hola|sup|howdy|good morning|good afternoon|good evening
-java vs python|java vs python|java or python|which is better java or python|why is java better|java is better than python|python is slow|java is faster|java is verbose
-tell me a joke|tell me a joke|say something funny|make me laugh|another joke
-should i learn java|should i learn java|is java worth learning|learn java|java vs go|go vs java|java vs rust|rust vs java
-what do you think of javascript|what do you think of javascript|javascript opinion
-i love python|i love python|python is good|python is awesome
+hi|hi|hello|hey|hola|sup|howdy|greetings|good day
 goodbye|goodbye|bye|see you later|cya|farewell|take care
-thank you|thank you|thanks|appreciate it
-are you a bot|are you a bot|what are you|who are you|what can you do|your capabilities|do you have feelings|can you feel
-java is great|java is great|i love java|java rocks|best language|you love java|java passion
-you're funny|you're funny|say something smart|give me wisdom|motivate me
+thanks|thanks|thank you|appreciate it|much obliged
+java love|java is great|i love java|java rocks|java is awesome|java is best
+python hate|python is slow|python is bad|i hate python
+joke|tell me a joke|make me laugh|say something funny|another joke|tell me another joke|java joke
+what is java|what is java|define java|explain java|tell me about java
+jvm|what is jvm|explain jvm|how does jvm work|jvm architecture
+spring|what is spring|spring boot|what is spring boot|spring framework
+collections|what are collections|java collections|collections framework
+java 8|java 8 features|what is java 8|java 8 lambda
+java 17|java 17|java 17 features|what is new in java 17
+java 21|java 21|virtual threads|project loom
+oop|object oriented programming|oop concepts|oop in java
+multithreading|multithreading|concurrency|threads in java
