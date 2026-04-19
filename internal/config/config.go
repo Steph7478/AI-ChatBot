@@ -7,12 +7,12 @@ const (
 )
 
 const (
-	VocabSize    = 10000
-	EmbeddingDim = 128
-	HiddenDim    = 256
-	NumHeads     = 8
-	NumLayers    = 3
-	MaxSeqLen    = 30
+	VocabSize    = 5000
+	EmbeddingDim = 64
+	HiddenDim    = 128
+	NumHeads     = 4
+	NumLayers    = 2
+	MaxSeqLen    = 20
 	Dropout      = 0.2
 )
 
@@ -36,10 +36,10 @@ const (
 )
 
 const (
-	LearningRate   = 0.001
-	BatchSize      = 4
-	TrainMaxSeqLen = 30
+	LearningRate   = 0.01
+	BatchSize      = 16
+	TrainMaxSeqLen = 20
 	GradientClip   = 0.5
 	Epsilon        = 1e-7
-	Patience       = 5
+	Patience       = 3
 )
