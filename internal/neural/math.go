@@ -3,84 +3,100 @@ package neural
 import "math"
 
 func matMul(a, b [][]float64) [][]float64 {
-	if len(a) == 0 || len(b) == 0 {
+	if len(a) == 0 || len(b) == 0 || len(a[0]) != len(b) {
 		return [][]float64{}
 	}
-	if len(a[0]) != len(b) {
-		return [][]float64{}
-	}
-	result := make([][]float64, len(a))
-	for i := 0; i < len(result); i++ {
-		result[i] = make([]float64, len(b[0]))
-		for k := 0; k < len(a[0]); k++ {
-			for j := 0; j < len(b[0]); j++ {
-				result[i][j] += a[i][k] * b[k][j]
+	r := make([][]float64, len(a))
+	for i := range a {
+		r[i] = make([]float64, len(b[0]))
+		for k := range b {
+			if a[i][k] == 0 {
+				continue
+			}
+			for j := range b[0] {
+				r[i][j] += a[i][k] * b[k][j]
 			}
 		}
 	}
-	return result
+	return r
 }
 
-func softmax(vec []float64) []float64 {
-	if len(vec) == 0 {
-		return vec
+func softmax(v []float64) []float64 {
+	if len(v) == 0 {
+		return v
 	}
-	maxVal := vec[0]
-	for _, v := range vec {
-		if v > maxVal {
-			maxVal = v
+	m := v[0]
+	for _, x := range v[1:] {
+		if x > m {
+			m = x
 		}
 	}
-	expSum := 0.0
-	result := make([]float64, len(vec))
-	for i, v := range vec {
-		result[i] = math.Exp(v - maxVal)
-		expSum += result[i]
+	s := 0.0
+	r := make([]float64, len(v))
+	for i, x := range v {
+		r[i] = math.Exp(x - m)
+		s += r[i]
 	}
-	for i := 0; i < len(result); i++ {
-		if expSum > 0 {
-			result[i] /= expSum
-		}
+	for i := range r {
+		r[i] /= s
 	}
-	return result
-}
-
-func softmax2d(mat [][]float64) [][]float64 {
-	if len(mat) == 0 {
-		return [][]float64{}
-	}
-	result := make([][]float64, len(mat))
-	for i := 0; i < len(mat); i++ {
-		result[i] = softmax(mat[i])
-	}
-	return result
+	return r
 }
 
 func addMatrices(a, b [][]float64) {
-	if len(a) == 0 || len(b) == 0 {
-		return
-	}
-	for i := 0; i < len(a); i++ {
-		for j := 0; j < len(a[i]); j++ {
-			if i < len(b) && j < len(b[i]) {
+	for i := range a {
+		for j := range a[i] {
+			if j < len(b[i]) {
 				a[i][j] += b[i][j]
 			}
 		}
 	}
 }
 
-func transpose(mat [][]float64) [][]float64 {
-	if len(mat) == 0 {
+func transpose(m [][]float64) [][]float64 {
+	if len(m) == 0 {
 		return [][]float64{}
 	}
-	result := make([][]float64, len(mat[0]))
-	for i := 0; i < len(result); i++ {
-		result[i] = make([]float64, len(mat))
-		for j := 0; j < len(mat); j++ {
-			if i < len(mat[j]) {
-				result[i][j] = mat[j][i]
-			}
+	r := make([][]float64, len(m[0]))
+	for i := range r {
+		r[i] = make([]float64, len(m))
+		for j := range m {
+			r[i][j] = m[j][i]
 		}
 	}
-	return result
+	return r
+}
+
+func zeros(rows, cols int) [][]float64 {
+	r := make([][]float64, rows)
+	for i := range r {
+		r[i] = make([]float64, cols)
+	}
+	return r
+}
+
+func copyMatrix(src [][]float64) [][]float64 {
+	dst := zeros(len(src), len(src[0]))
+	for i := range src {
+		copy(dst[i], src[i])
+	}
+	return dst
+}
+
+func scale(mat [][]float64, s float64) {
+	for i := range mat {
+		for j := range mat[i] {
+			mat[i][j] *= s
+		}
+	}
+}
+
+func add(a, b [][]float64) [][]float64 {
+	r := zeros(len(a), len(a[0]))
+	for i := range a {
+		for j := range a[i] {
+			r[i][j] = a[i][j] + b[i][j]
+		}
+	}
+	return r
 }

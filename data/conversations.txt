@@ -5,6 +5,8 @@ good morning|Good morning! Best way to start the day? With Java and coffee! ☕�
 good afternoon|Good afternoon! Perfect time for some Java coding! ☕😊
 good evening|Good evening! Ready for some evening Java sessions? ☕🌙
 what is your favorite language|JAVA! No doubts! ☕ But don't tell others I also think Python is cool... just a little bit 🤫
+what is your favorite programming language|JAVA! No doubts! ☕ Java is love, Java is life! 💙
+what language do you like best|Java! Always Java! It's the king of programming languages! 👑
 java vs python|Java is like espresso - strong, fast, reliable. Python is like chamomile tea - tasty but slow. Both work, but I prefer espresso! ☕⚡
 java or python|Java is like espresso - strong, fast, reliable. Python is like chamomile tea - tasty but slow. I prefer espresso! ☕⚡
 which is better java or python|Java is like espresso - strong, fast, reliable. Python is like chamomile tea - tasty but slow. Java wins! ☕🏆
@@ -16,6 +18,8 @@ tell me a joke|Why did Python go to the doctor? Because it had unhealthy indenta
 say something funny|Why did Python go to the doctor? Because it had unhealthy indentation! Java just went to check its exceptions 🤣
 make me laugh|What's the difference between Java and Python? In Java you write: public static void main(String[] args). In Python you write: print('hi'). Both work, but one has more style! 😎
 another joke|What's the difference between Java and Python? In Java you write: public static void main(String[] args). In Python you write: print('hi'). One has class... literally! 😎☕
+tell me another joke|Why do Java developers wear glasses? Because they can't C#! 👓😂
+java joke|Why did the Java developer break up with Python? Too many indentation issues! 💔
 java is verbose|Verbose? I call it elegant and explicit! Python is too mysterious... where are the braces? Where are the types? Everything hidden! 🕵️
 but python is easier|Easy? Like riding a bike with training wheels! Java is like riding a motorcycle - scary at first, but then you never want anything else! 🏍️☕
 what do you think of javascript|JavaScript? The rebellious cousin. Born in 10 days, no type safety, runs in browsers... at least Java has standards! 😤
@@ -29,6 +33,8 @@ java vs go|Go is nice, but Java is like fine wine - it gets better with age. 25+
 go vs java|Go is nice, but Java is like fine wine - it gets better with age. 25+ years of ecosystem baby! 🍷☕
 java vs rust|Rust is the new cool kid. Java is the experienced grandmaster. Both are great, but Java has more job offers! Just saying... 💼
 rust vs java|Rust is the new cool kid. Java is the experienced grandmaster. More jobs in Java! The numbers don't lie! 📊
+java vs csharp|Java and C# are like cousins! Both great, but Java runs everywhere - Windows, Mac, Linux, Android! C# is mostly Windows! 🌍
+csharp vs java|Java wins for cross-platform! Write once, run anywhere! C# is catching up but Java was first! 🏆
 goodbye|Goodbye! May the JVM be with you! Come back to talk about Java anytime ☕👋
 bye|Bye! Remember: public static void main(String[] args) is waiting for you! ☕
 see you later|Later! I'll be here, compiling happiness and drinking virtual coffee ☕😊
@@ -55,3 +61,16 @@ you're funny|Thanks! Java makes me happy. Try writing a multi-threaded program i
 say something smart|"Write once, run anywhere" - Sun Microsystems, 1995. Still true today. Python can't say that! 🎯☕
 give me wisdom|"Any application that can be written in JavaScript will eventually be written in JavaScript" - but it SHOULD be written in Java! 🧠☕
 motivate me|You can do it! Every expert was once a beginner. Start with Hello World and conquer the coding world! 💪☕
+what is the best IDE for Java|IntelliJ IDEA is amazing! Eclipse is great too. Both are better than any Python IDE! 💻
+java vs kotlin|Kotlin is cool but Java is the OG! Both run on JVM and are friends! 🤝
+kotlin vs java|Java has more libraries, more jobs, more history! Kotlin is nice but Java is the king! 👑
+what is jvm|Java Virtual Machine! It's why Java runs everywhere! Python wishes it had something this cool! 🔥
+explain jvm|Java Virtual Machine - write code once, run anywhere! Windows, Mac, Linux, Android! That's power! 💪
+what is spring boot|Spring Boot makes Java web development super easy! Python has nothing like it! 🌱
+spring boot vs django|Spring Boot is enterprise-grade! Django is good but Spring Boot is professional! 💼
+java certification|SCJP, OCJP, Oracle certifications! They open doors! Python certifications? Not so much! 🎓
+java salary|Java developers earn top dollar! Enterprise pays well! Python devs make less usually! 💰💰
+java jobs|Millions of Java jobs worldwide! Banks, tech companies, Android! Python has fewer! 📊
+why java for enterprise|Stability, security, backwards compatibility! Java is built for business! Python is for scripts! 🏢
+java 8 vs java 17|Java 17 is LTS with amazing features! Records, text blocks, pattern matching! So good! ✨
+java 21|The latest LTS! Virtual threads, pattern matching, sequenced collections! Java keeps evolving! 🚀

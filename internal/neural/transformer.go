@@ -22,13 +22,10 @@ func NewTransformer(vocabSize, embedDim, hiddenDim, numHeads, numLayers, maxSeqL
 			FFN:       NewFeedForwardLayer(embedDim, hiddenDim),
 		}
 	}
-
-	output := &OutputLayer{Weights: newMatrix(embedDim, vocabSize)}
-
 	return &Transformer{
 		Embedding: NewEmbeddingLayer(vocabSize, embedDim),
 		Blocks:    blocks,
-		Output:    output,
+		Output:    &OutputLayer{Weights: newMatrix(embedDim, vocabSize)},
 		MaxSeqLen: maxSeqLen,
 	}
 }
@@ -38,121 +35,89 @@ func (t *Transformer) Forward(ids []int) [][]float64 {
 		return [][]float64{}
 	}
 	x := t.Embedding.Forward(ids)
-	pe := positionalEncoding(len(x), len(x[0]))
-	addMatrices(x, pe)
-
-	for _, block := range t.Blocks {
-		attnOut := block.Attention.Forward(x)
-		addMatrices(attnOut, x)
-		x = attnOut
-		ffnOut := block.FFN.Forward(x)
-		addMatrices(ffnOut, x)
-		x = ffnOut
+	addMatrices(x, positionalEncoding(len(x), len(x[0])))
+	for _, b := range t.Blocks {
+		a := b.Attention.Forward(x)
+		addMatrices(a, x)
+		x = a
+		f := b.FFN.Forward(x)
+		addMatrices(f, x)
+		x = f
 	}
-
-	output := matMul(x, t.Output.Weights)
-
-	t.Output.OutputCache = make([][]float64, len(x))
-	for i := range x {
-		t.Output.OutputCache[i] = make([]float64, len(x[i]))
-		copy(t.Output.OutputCache[i], x[i])
-	}
-	return output
+	return matMul(x, t.Output.Weights)
 }
 
 func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg InferenceConfig) Response {
 	ids := tokenizer(input)
 	if len(ids) == 0 {
-		return Response{Tokens: []Token{}, Confidence: 0}
+		return Response{}
 	}
-
-	tokens := []Token{}
-	maxTokens := cfg.MaxTokens
-	if maxTokens <= 0 {
-		maxTokens = 20
+	toks := []Token{}
+	cur := make([]int, len(ids))
+	copy(cur, ids)
+	recent := make(map[int]int)
+	mt := cfg.MaxTokens
+	if mt <= 0 {
+		mt = 20
 	}
-
-	currentIds := make([]int, len(ids))
-	copy(currentIds, ids)
-
-	recentTokens := make(map[int]int)
-
-	for step := 0; step < maxTokens; step++ {
-		logits := t.Forward(currentIds)
+	for step := 0; step < mt; step++ {
+		logits := t.Forward(cur)
 		if len(logits) == 0 || len(logits[len(logits)-1]) == 0 {
 			break
 		}
-
-		lastLogits := make([]float64, len(logits[len(logits)-1]))
-		copy(lastLogits, logits[len(logits)-1])
-
-		for i := range lastLogits {
-			lastLogits[i] /= cfg.Temperature
+		last := make([]float64, len(logits[len(logits)-1]))
+		copy(last, logits[len(logits)-1])
+		for i := range last {
+			last[i] /= cfg.Temperature
 		}
-
-		probs := softmax(lastLogits)
-
-		for i := range probs {
-			if count, exists := recentTokens[i]; exists && count > 0 {
-				probs[i] = probs[i] / float64(1+count*3)
+		p := softmax(last)
+		for i := range p {
+			if c, ok := recent[i]; ok && c > 0 {
+				p[i] = p[i] / float64(1+c*3)
 			}
 		}
-
-		tokenID := 0
-		maxProb := 0.0
-		for i, p := range probs {
-			if p > maxProb {
-				maxProb = p
-				tokenID = i
+		id, mp := 0, 0.0
+		for i, v := range p {
+			if v > mp {
+				mp, id = v, i
 			}
 		}
-
-		tokens = append(tokens, Token{ID: tokenID, Prob: maxProb})
-		recentTokens[tokenID] = recentTokens[tokenID] + 1
-		currentIds = append(currentIds, tokenID)
-
-		if len(currentIds) > t.MaxSeqLen {
-			currentIds = currentIds[1:]
+		toks = append(toks, Token{ID: id, Prob: mp})
+		recent[id] = recent[id] + 1
+		cur = append(cur, id)
+		if len(cur) > t.MaxSeqLen {
+			cur = cur[1:]
 		}
-
-		if tokenID == 0 {
+		if id == 0 {
 			break
 		}
 	}
-
-	if len(tokens) == 0 {
-		return Response{Tokens: []Token{}, Confidence: 0}
+	if len(toks) == 0 {
+		return Response{}
 	}
-
-	confidence := tokens[len(tokens)-1].Prob
-	for _, tkn := range tokens {
-		if tkn.Prob < confidence {
-			confidence = tkn.Prob
+	c := toks[len(toks)-1].Prob
+	for _, t := range toks {
+		if t.Prob < c {
+			c = t.Prob
 		}
 	}
-
-	return Response{
-		Tokens:     tokens,
-		Confidence: confidence,
-	}
+	return Response{Tokens: toks, Confidence: c}
 }
 
 func (t *Transformer) Save(path string) error {
-	file, err := os.Create(path)
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	encoder := gob.NewEncoder(file)
-	return encoder.Encode(t)
+	defer f.Close()
+	return gob.NewEncoder(f).Encode(t)
 }
 
 func (t *Transformer) Load(path string) error {
-	file, err := os.Open(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	decoder := gob.NewDecoder(file)
-	return decoder.Decode(t)
+	defer f.Close()
+	return gob.NewDecoder(f).Decode(t)
 }

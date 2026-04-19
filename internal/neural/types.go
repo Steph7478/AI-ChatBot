@@ -12,16 +12,6 @@ type Trainer struct {
 	Config TrainingConfig
 }
 
-type Adam struct {
-	LearningRate float64
-	Beta1        float64
-	Beta2        float64
-	Epsilon      float64
-	M            map[string][][]float64
-	V            map[string][][]float64
-	Step         int
-}
-
 type FeedForwardLayer struct {
 	W1, W2 [][]float64
 }
@@ -68,16 +58,4 @@ type Token struct {
 type Response struct {
 	Tokens     []Token
 	Confidence float64
-}
-
-func NewAdam(lr float64) *Adam {
-	return &Adam{
-		LearningRate: lr,
-		Beta1:        0.9,
-		Beta2:        0.999,
-		Epsilon:      1e-8,
-		M:            make(map[string][][]float64),
-		V:            make(map[string][][]float64),
-		Step:         0,
-	}
 }
