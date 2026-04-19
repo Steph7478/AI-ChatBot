@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/gob"
 	"fmt"
 	"os"
 
@@ -26,6 +27,29 @@ func (m *Model) SaveConversation(userInput, botResponse string) error {
 	return err
 }
 
+func SaveVocab(path string) error {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data := struct {
+		WordToID map[string]int
+		IDToWord map[int]string
+		NextID   int
+	}{
+		WordToID: wordToID,
+		IDToWord: idToWord,
+		NextID:   nextID,
+	}
+
+	return gob.NewEncoder(file).Encode(data)
+}
+
 func (m *Model) SaveModel() error {
 	fmt.Println("Saving model to", config.ModelFile)
 	if err := m.Brain.Save(config.ModelFile); err != nil {
@@ -35,16 +59,4 @@ func (m *Model) SaveModel() error {
 	vocabFile := config.ModelFile + ".vocab"
 	fmt.Println("Saving vocab to", vocabFile)
 	return SaveVocab(vocabFile)
-}
-
-func (m *Model) LoadModel() error {
-	if err := m.Brain.Load(config.ModelFile); err != nil {
-		return err
-	}
-
-	vocabFile := config.ModelFile + ".vocab"
-	if err := LoadVocab(vocabFile); err != nil {
-		fmt.Println("No vocab found, will create new one")
-	}
-	return nil
 }

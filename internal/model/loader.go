@@ -2,6 +2,8 @@ package model
 
 import (
 	"bufio"
+	"encoding/gob"
+	"fmt"
 	"os"
 	"strings"
 
@@ -11,6 +13,45 @@ import (
 func (m *Model) LoadAll() {
 	m.loadFile(config.ConversationsFile, m.onPair)
 	m.loadFile(config.PromptsFile, m.onPrompt)
+}
+
+func LoadVocab(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var data struct {
+		WordToID map[string]int
+		IDToWord map[int]string
+		NextID   int
+	}
+
+	if err := gob.NewDecoder(file).Decode(&data); err != nil {
+		return err
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	wordToID = data.WordToID
+	idToWord = data.IDToWord
+	nextID = data.NextID
+
+	return nil
+}
+
+func (m *Model) LoadModel() error {
+	if err := m.Brain.Load(config.ModelFile); err != nil {
+		return err
+	}
+
+	vocabFile := config.ModelFile + ".vocab"
+	if err := LoadVocab(vocabFile); err != nil {
+		fmt.Println("No vocab found, will create new one")
+	}
+	return nil
 }
 
 func (m *Model) loadFile(path string, callback func([]string)) {

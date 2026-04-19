@@ -1,8 +1,6 @@
 package model
 
 import (
-	"encoding/gob"
-	"os"
 	"strings"
 	"sync"
 
@@ -74,54 +72,4 @@ func detokenize(tokens []neural.Token) string {
 	}
 
 	return strings.Join(words, " ")
-}
-
-func SaveVocab(path string) error {
-	mu.RLock()
-	defer mu.RUnlock()
-
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	data := struct {
-		WordToID map[string]int
-		IDToWord map[int]string
-		NextID   int
-	}{
-		WordToID: wordToID,
-		IDToWord: idToWord,
-		NextID:   nextID,
-	}
-
-	return gob.NewEncoder(file).Encode(data)
-}
-
-func LoadVocab(path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	var data struct {
-		WordToID map[string]int
-		IDToWord map[int]string
-		NextID   int
-	}
-
-	if err := gob.NewDecoder(file).Decode(&data); err != nil {
-		return err
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	wordToID = data.WordToID
-	idToWord = data.IDToWord
-	nextID = data.NextID
-
-	return nil
 }
