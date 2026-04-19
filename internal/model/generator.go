@@ -76,8 +76,6 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 }
 
 func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
-	fmt.Printf("\n[DEBUG] generateFromNeural called with: '%s'\n", prompt)
-
 	cfg := neural.InferenceConfig{
 		Temperature: temp,
 		TopK:        config.TopK,
@@ -85,22 +83,26 @@ func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
 	}
 
 	resp := m.Brain.Generate(prompt, defaultTokenizer, cfg)
+
+	for _, t := range resp.Tokens {
+		fmt.Printf("%d ", t.ID)
+	}
+	fmt.Println()
+
 	response := detokenize(resp.Tokens)
-	fmt.Printf("[DEBUG] First attempt response: '%s' (len=%d)\n", response, len(response))
 
-	temperatures := []float64{1.2, 1.5, 1.8}
-	topKs := []int{40, 60, 80}
-
-	for i := 0; i < len(temperatures) && len(response) < 3; i++ {
-		cfg.Temperature = temperatures[i]
-		cfg.TopK = topKs[i]
-		resp = m.Brain.Generate(prompt, defaultTokenizer, cfg)
-		response = detokenize(resp.Tokens)
-		fmt.Printf("[DEBUG] Attempt %d response: '%s' (len=%d)\n", i+2, response, len(response))
+	words := strings.Fields(response)
+	if len(words) > 2 {
+		filtered := []string{words[0]}
+		for i := 1; i < len(words); i++ {
+			if words[i] != filtered[len(filtered)-1] {
+				filtered = append(filtered, words[i])
+			}
+		}
+		response = strings.Join(filtered, " ")
 	}
 
 	if len(response) < 3 {
-		fmt.Println("[DEBUG] Response too short, returning fallback")
 		return "I need more training to answer this properly.", true
 	}
 

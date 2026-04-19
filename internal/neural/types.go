@@ -4,6 +4,7 @@ type TrainingConfig struct {
 	LearningRate float64
 	BatchSize    int
 	Epochs       int
+	Patience     int
 }
 
 type Trainer struct {

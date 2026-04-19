@@ -4,7 +4,7 @@ chatbot.exe
 
 # Checkpoint (learned memory)
 data/memory_checkpoint.gob
-*.gob
+*.gob*
 
 # IDE
 .vscode/

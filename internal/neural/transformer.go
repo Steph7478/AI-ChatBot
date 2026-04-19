@@ -65,26 +65,77 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg I
 	if len(ids) == 0 {
 		return Response{Tokens: []Token{}, Confidence: 0}
 	}
-	logits := t.Forward(ids)
-	if len(logits) == 0 || len(logits[len(logits)-1]) == 0 {
-		return Response{Tokens: []Token{}, Confidence: 0}
+
+	tokens := []Token{}
+	maxTokens := cfg.MaxTokens
+	if maxTokens <= 0 {
+		maxTokens = 20
 	}
-	lastLogits := logits[len(logits)-1]
-	for i := range lastLogits {
-		lastLogits[i] /= cfg.Temperature
-	}
-	probs := softmax(lastLogits)
-	tokenID := 0
-	maxProb := 0.0
-	for i, p := range probs {
-		if p > maxProb {
-			maxProb = p
-			tokenID = i
+
+	currentIds := make([]int, len(ids))
+	copy(currentIds, ids)
+
+	recentTokens := make(map[int]int)
+
+	for step := 0; step < maxTokens; step++ {
+		logits := t.Forward(currentIds)
+		if len(logits) == 0 || len(logits[len(logits)-1]) == 0 {
+			break
+		}
+
+		lastLogits := make([]float64, len(logits[len(logits)-1]))
+		copy(lastLogits, logits[len(logits)-1])
+
+		for i := range lastLogits {
+			lastLogits[i] /= cfg.Temperature
+		}
+
+		probs := softmax(lastLogits)
+
+		// PENALIDADE DE REPETIÇÃO AUMENTADA
+		for i := range probs {
+			if count, exists := recentTokens[i]; exists && count > 0 {
+				// Quanto mais repetiu, menor a chance (penalidade mais forte)
+				probs[i] = probs[i] / float64(1+count*3)
+			}
+		}
+
+		tokenID := 0
+		maxProb := 0.0
+		for i, p := range probs {
+			if p > maxProb {
+				maxProb = p
+				tokenID = i
+			}
+		}
+
+		tokens = append(tokens, Token{ID: tokenID, Prob: maxProb})
+		recentTokens[tokenID] = recentTokens[tokenID] + 1
+		currentIds = append(currentIds, tokenID)
+
+		if len(currentIds) > t.MaxSeqLen {
+			currentIds = currentIds[1:]
+		}
+
+		if tokenID == 0 {
+			break
 		}
 	}
+
+	if len(tokens) == 0 {
+		return Response{Tokens: []Token{}, Confidence: 0}
+	}
+
+	confidence := tokens[len(tokens)-1].Prob
+	for _, tkn := range tokens {
+		if tkn.Prob < confidence {
+			confidence = tkn.Prob
+		}
+	}
+
 	return Response{
-		Tokens:     []Token{{ID: tokenID, Prob: probs[tokenID]}},
-		Confidence: probs[tokenID],
+		Tokens:     tokens,
+		Confidence: confidence,
 	}
 }
 

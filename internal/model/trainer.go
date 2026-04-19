@@ -44,15 +44,11 @@ func (m *Model) Train(epochs int) {
 		LearningRate: config.LearningRate,
 		BatchSize:    config.BatchSize,
 		Epochs:       epochs,
+		Patience:     3,
 	})
 
 	loss := trainer.Train(epochs, inputs, targets)
 	fmt.Printf("Training completed! Final loss: %.4f\n", loss)
 
 	m.SaveModel()
-}
-
-func (m *Model) TrainIncremental() {
-	fmt.Println("Running incremental training...")
-	m.Train(5)
 }

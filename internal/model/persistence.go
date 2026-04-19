@@ -28,9 +28,23 @@ func (m *Model) SaveConversation(userInput, botResponse string) error {
 
 func (m *Model) SaveModel() error {
 	fmt.Println("Saving model to", config.ModelFile)
-	return m.Brain.Save(config.ModelFile)
+	if err := m.Brain.Save(config.ModelFile); err != nil {
+		return err
+	}
+
+	vocabFile := config.ModelFile + ".vocab"
+	fmt.Println("Saving vocab to", vocabFile)
+	return SaveVocab(vocabFile)
 }
 
 func (m *Model) LoadModel() error {
-	return m.Brain.Load(config.ModelFile)
+	if err := m.Brain.Load(config.ModelFile); err != nil {
+		return err
+	}
+
+	vocabFile := config.ModelFile + ".vocab"
+	if err := LoadVocab(vocabFile); err != nil {
+		fmt.Println("No vocab found, will create new one")
+	}
+	return nil
 }

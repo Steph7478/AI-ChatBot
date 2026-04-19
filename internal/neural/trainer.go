@@ -21,6 +21,11 @@ func (t *Trainer) Train(epochs int, inputs, targets [][]int) float64 {
 	fmt.Printf("Initial Output weights[0][0:5]: %v\n", t.Model.Output.Weights[0][:5])
 
 	totalLoss := 0.0
+	bestLoss := math.MaxFloat64
+	bestEpoch := 0
+	noImproveCount := 0
+	patience := 5
+
 	for epoch := 0; epoch < epochs; epoch++ {
 		epochLoss := 0.0
 		gradNormSum := 0.0
@@ -129,6 +134,21 @@ func (t *Trainer) Train(epochs int, inputs, targets [][]int) float64 {
 
 		if epoch > 0 && avgLoss > totalLoss && epoch == 1 {
 			fmt.Println("⚠️  WARNING: Loss is increasing! Gradient direction might be wrong.")
+		}
+
+		if avgLoss < bestLoss {
+			bestLoss = avgLoss
+			bestEpoch = epoch + 1
+			noImproveCount = 0
+			fmt.Printf("  🎯 New best loss! (%.6f)\n", bestLoss)
+		} else {
+			noImproveCount++
+			fmt.Printf("  ⏳ No improvement for %d/%d epochs\n", noImproveCount, patience)
+		}
+
+		if noImproveCount >= patience && epoch+1 > 1 {
+			fmt.Printf("\n🛑 EARLY STOPPING! Best loss was %.6f at epoch %d\n", bestLoss, bestEpoch)
+			break
 		}
 	}
 
