@@ -3,46 +3,12 @@ package neural
 import (
 	"fmt"
 	"math"
-
-	"chatbot/internal/config"
 )
-
-func (a *Adam) Update(name string, weights, grad [][]float64) [][]float64 {
-	a.Step++
-
-	if _, ok := a.M[name]; !ok {
-		a.M[name] = newMatrix(len(weights), len(weights[0]))
-		a.V[name] = newMatrix(len(weights), len(weights[0]))
-	}
-
-	updated := make([][]float64, len(weights))
-	for i := range weights {
-		updated[i] = make([]float64, len(weights[i]))
-		for j := range weights[i] {
-			a.M[name][i][j] = a.Beta1*a.M[name][i][j] + (1-a.Beta1)*grad[i][j]
-			a.V[name][i][j] = a.Beta2*a.V[name][i][j] + (1-a.Beta2)*grad[i][j]*grad[i][j]
-
-			mHat := a.M[name][i][j] / (1 - math.Pow(a.Beta1, float64(a.Step)))
-			vHat := a.V[name][i][j] / (1 - math.Pow(a.Beta2, float64(a.Step)))
-
-			update := a.LearningRate * mHat / (math.Sqrt(vHat) + a.Epsilon)
-			if update > config.GradientClip {
-				update = config.GradientClip
-			}
-			if update < -config.GradientClip {
-				update = -config.GradientClip
-			}
-			updated[i][j] = weights[i][j] - update
-		}
-	}
-	return updated
-}
 
 func NewTrainer(model *Transformer, cfg TrainingConfig) *Trainer {
 	return &Trainer{
-		Model:     model,
-		Config:    cfg,
-		Optimizer: NewAdam(cfg.LearningRate),
+		Model:  model,
+		Config: cfg,
 	}
 }
 
@@ -51,157 +17,120 @@ func (t *Trainer) Train(epochs int, inputs, targets [][]int) float64 {
 		return 0
 	}
 
-	var totalLoss float64
-	lossHistory := make([]float64, epochs)
+	fmt.Printf("Training: %d samples, %d epochs, LR=%.6f\n", len(inputs), epochs, t.Config.LearningRate)
+	fmt.Printf("Initial Output weights[0][0:5]: %v\n", t.Model.Output.Weights[0][:5])
 
-	for epoch := range epochs {
-		totalLoss = 0
-		validBatches := 0
+	totalLoss := 0.0
+	for epoch := 0; epoch < epochs; epoch++ {
+		epochLoss := 0.0
+		gradNormSum := 0.0
+		weightNormSum := 0.0
 
-		for idx := range inputs {
+		for idx := 0; idx < len(inputs); idx++ {
+			if len(inputs[idx]) == 0 || len(targets[idx]) == 0 {
+				continue
+			}
+
+			weightsBefore := make([][]float64, len(t.Model.Output.Weights))
+			for i := range t.Model.Output.Weights {
+				weightsBefore[i] = make([]float64, len(t.Model.Output.Weights[i]))
+				copy(weightsBefore[i], t.Model.Output.Weights[i])
+			}
+
 			logits := t.Model.Forward(inputs[idx])
-			loss := crossEntropyLoss(logits, targets[idx])
-
-			if !math.IsNaN(loss) && !math.IsInf(loss, 0) {
-				totalLoss += loss
-				validBatches++
-				grads := t.backward(logits, targets[idx])
-				t.updateWeights(grads)
+			if len(logits) == 0 || len(logits[len(logits)-1]) == 0 {
+				continue
 			}
-		}
 
-		if validBatches > 0 {
-			lossHistory[epoch] = totalLoss / float64(validBatches)
-		} else {
-			lossHistory[epoch] = 0
-		}
+			lastLogits := logits[len(logits)-1]
 
-		if epoch%5 == 0 || epoch == epochs-1 {
-			fmt.Printf("Epoch %d/%d, Loss: %.6f\n", epoch, epochs, lossHistory[epoch])
-		}
-	}
-
-	if len(lossHistory) > 0 {
-		return lossHistory[len(lossHistory)-1]
-	}
-	return 0
-}
-
-func (t *Trainer) backward(logits [][]float64, targets []int) map[string][][]float64 {
-	grads := make(map[string][][]float64)
-
-	if len(logits) == 0 || t.Model.Output.OutputCache == nil {
-		return grads
-	}
-
-	outputGrad := softmaxGradient(logits, targets)
-
-	if len(outputGrad) == 0 {
-		return grads
-	}
-
-	if len(t.Model.Output.OutputCache) > 0 && len(outputGrad) > 0 {
-		outputWeightGrad := matMul(transpose(t.Model.Output.OutputCache), outputGrad)
-		grads["output_weights"] = outputWeightGrad
-	}
-
-	grad := outputGrad
-
-	for i := len(t.Model.Blocks) - 1; i >= 0; i-- {
-		if i >= len(t.Model.Blocks) {
-			continue
-		}
-		block := t.Model.Blocks[i]
-		if block.FFN != nil {
-			grad = block.FFN.Backward(grad, grads, i)
-		}
-		if block.Attention != nil {
-			grad = block.Attention.Backward(grad, grads, i)
-		}
-	}
-
-	if len(grad) > 0 && len(t.Model.Embedding.Weights) > 0 {
-		embeddingGrad := matMul(grad, transpose(t.Model.Embedding.Weights))
-		grads["embedding"] = embeddingGrad
-	}
-
-	return grads
-}
-
-func (t *Trainer) updateWeights(grads map[string][][]float64) {
-	if grad, ok := grads["output_weights"]; ok {
-		t.Model.Output.Weights = t.Optimizer.Update("output", t.Model.Output.Weights, grad)
-	}
-
-	for i := range t.Model.Blocks {
-		if grad, ok := grads[ffnKey(i, "w1")]; ok {
-			t.Model.Blocks[i].FFN.W1 = t.Optimizer.Update(ffnKey(i, "w1"), t.Model.Blocks[i].FFN.W1, grad)
-		}
-		if grad, ok := grads[ffnKey(i, "w2")]; ok {
-			t.Model.Blocks[i].FFN.W2 = t.Optimizer.Update(ffnKey(i, "w2"), t.Model.Blocks[i].FFN.W2, grad)
-		}
-		if grad, ok := grads[attnKey(i, "wq")]; ok {
-			t.Model.Blocks[i].Attention.WQ = t.Optimizer.Update(attnKey(i, "wq"), t.Model.Blocks[i].Attention.WQ, grad)
-		}
-		if grad, ok := grads[attnKey(i, "wk")]; ok {
-			t.Model.Blocks[i].Attention.WK = t.Optimizer.Update(attnKey(i, "wk"), t.Model.Blocks[i].Attention.WK, grad)
-		}
-		if grad, ok := grads[attnKey(i, "wv")]; ok {
-			t.Model.Blocks[i].Attention.WV = t.Optimizer.Update(attnKey(i, "wv"), t.Model.Blocks[i].Attention.WV, grad)
-		}
-		if grad, ok := grads[attnKey(i, "wo")]; ok {
-			t.Model.Blocks[i].Attention.WO = t.Optimizer.Update(attnKey(i, "wo"), t.Model.Blocks[i].Attention.WO, grad)
-		}
-	}
-
-	if grad, ok := grads["embedding"]; ok {
-		t.Model.Embedding.Weights = t.Optimizer.Update("embedding", t.Model.Embedding.Weights, grad)
-	}
-}
-
-func crossEntropyLoss(logits [][]float64, targets []int) float64 {
-	if len(logits) == 0 {
-		return 0
-	}
-
-	lastLogits := logits[len(logits)-1]
-	probs := softmax(lastLogits)
-
-	loss := 0.0
-	count := 0
-	for _, target := range targets {
-		if target >= 0 && target < len(probs) {
-			loss -= math.Log(probs[target] + config.Epsilon)
-			count++
-		}
-	}
-	if count == 0 {
-		return 0
-	}
-	return loss / float64(count)
-}
-
-func softmaxGradient(logits [][]float64, targets []int) [][]float64 {
-	if len(logits) == 0 {
-		return [][]float64{}
-	}
-
-	lastLogits := logits[len(logits)-1]
-	probs := softmax(lastLogits)
-
-	grad := make([][]float64, len(logits))
-	for i := range grad {
-		grad[i] = make([]float64, len(lastLogits))
-		if i == len(logits)-1 {
-			for j := range grad[i] {
-				grad[i][j] = probs[j]
-			}
-			for _, target := range targets {
-				if target >= 0 && target < len(grad[i]) {
-					grad[i][target] -= 1.0
+			maxLogit := lastLogits[0]
+			for _, v := range lastLogits {
+				if v > maxLogit {
+					maxLogit = v
 				}
 			}
+
+			expSum := 0.0
+			probs := make([]float64, len(lastLogits))
+			for i, v := range lastLogits {
+				probs[i] = math.Exp(v - maxLogit)
+				expSum += probs[i]
+			}
+			if expSum == 0 {
+				expSum = 1e-8
+			}
+			for i := range probs {
+				probs[i] /= expSum
+				if probs[i] < 1e-10 {
+					probs[i] = 1e-10
+				}
+			}
+
+			loss := 0.0
+			for _, target := range targets[idx] {
+				if target >= 0 && target < len(probs) {
+					loss -= math.Log(probs[target])
+				}
+			}
+			loss /= float64(len(targets[idx]))
+			epochLoss += loss
+
+			grad := make([]float64, len(lastLogits))
+			for i := range grad {
+				grad[i] = probs[i]
+			}
+			for _, target := range targets[idx] {
+				if target >= 0 && target < len(grad) {
+					grad[target] -= 1.0
+				}
+			}
+			for i := range grad {
+				grad[i] /= float64(len(targets[idx]))
+			}
+
+			gradNorm := 0.0
+			for _, g := range grad {
+				gradNorm += g * g
+			}
+			gradNorm = math.Sqrt(gradNorm)
+			gradNormSum += gradNorm
+
+			if len(t.Model.Output.Weights) > 0 && len(t.Model.Output.Weights[0]) == len(grad) {
+				for i := 0; i < len(t.Model.Output.Weights); i++ {
+					for j := 0; j < len(t.Model.Output.Weights[i]) && j < len(grad); j++ {
+						update := t.Config.LearningRate * grad[j]
+						t.Model.Output.Weights[i][j] -= update
+					}
+				}
+			}
+
+			weightChange := 0.0
+			for i := range t.Model.Output.Weights {
+				for j := range t.Model.Output.Weights[i] {
+					diff := t.Model.Output.Weights[i][j] - weightsBefore[i][j]
+					weightChange += diff * diff
+				}
+			}
+			weightNormSum += math.Sqrt(weightChange)
+		}
+
+		avgLoss := epochLoss / float64(len(inputs))
+		avgGradNorm := gradNormSum / float64(len(inputs))
+		avgWeightChange := weightNormSum / float64(len(inputs))
+		totalLoss = avgLoss
+
+		if epoch == 0 {
+			fmt.Printf("After epoch 1, Output weights[0][0:5]: %v\n", t.Model.Output.Weights[0][:5])
+		}
+
+		fmt.Printf("Epoch %d/%d, Loss: %.6f, GradNorm: %.6f, WeightChange: %.6f\n",
+			epoch+1, epochs, avgLoss, avgGradNorm, avgWeightChange)
+
+		if epoch > 0 && avgLoss > totalLoss && epoch == 1 {
+			fmt.Println("⚠️  WARNING: Loss is increasing! Gradient direction might be wrong.")
 		}
 	}
-	return grad
+
+	return totalLoss
 }

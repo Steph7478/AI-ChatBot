@@ -23,10 +23,12 @@ func NewTransformer(vocabSize, embedDim, hiddenDim, numHeads, numLayers, maxSeqL
 		}
 	}
 
+	output := &OutputLayer{Weights: newMatrix(embedDim, vocabSize)}
+
 	return &Transformer{
 		Embedding: NewEmbeddingLayer(vocabSize, embedDim),
 		Blocks:    blocks,
-		Output:    &OutputLayer{Weights: newMatrix(embedDim, vocabSize)},
+		Output:    output,
 		MaxSeqLen: maxSeqLen,
 	}
 }
@@ -43,13 +45,13 @@ func (t *Transformer) Forward(ids []int) [][]float64 {
 		attnOut := block.Attention.Forward(x)
 		addMatrices(attnOut, x)
 		x = attnOut
-
 		ffnOut := block.FFN.Forward(x)
 		addMatrices(ffnOut, x)
 		x = ffnOut
 	}
 
 	output := matMul(x, t.Output.Weights)
+
 	t.Output.OutputCache = make([][]float64, len(x))
 	for i := range x {
 		t.Output.OutputCache[i] = make([]float64, len(x[i]))
@@ -63,20 +65,15 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg I
 	if len(ids) == 0 {
 		return Response{Tokens: []Token{}, Confidence: 0}
 	}
-
 	logits := t.Forward(ids)
-
-	if len(logits) == 0 {
+	if len(logits) == 0 || len(logits[len(logits)-1]) == 0 {
 		return Response{Tokens: []Token{}, Confidence: 0}
 	}
-
 	lastLogits := logits[len(logits)-1]
 	for i := range lastLogits {
 		lastLogits[i] /= cfg.Temperature
 	}
-
 	probs := softmax(lastLogits)
-
 	tokenID := 0
 	maxProb := 0.0
 	for i, p := range probs {
@@ -85,7 +82,6 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg I
 			tokenID = i
 		}
 	}
-
 	return Response{
 		Tokens:     []Token{{ID: tokenID, Prob: probs[tokenID]}},
 		Confidence: probs[tokenID],
@@ -98,7 +94,6 @@ func (t *Transformer) Save(path string) error {
 		return err
 	}
 	defer file.Close()
-
 	encoder := gob.NewEncoder(file)
 	return encoder.Encode(t)
 }
@@ -109,7 +104,6 @@ func (t *Transformer) Load(path string) error {
 		return err
 	}
 	defer file.Close()
-
 	decoder := gob.NewDecoder(file)
 	return decoder.Decode(t)
 }

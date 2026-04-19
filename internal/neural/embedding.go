@@ -50,9 +50,9 @@ func newMatrix(rows, cols int) [][]float64 {
 		return [][]float64{}
 	}
 	m := make([][]float64, rows)
-	for i := range rows {
+	for i := 0; i < rows; i++ {
 		m[i] = make([]float64, cols)
-		for j := range cols {
+		for j := 0; j < cols; j++ {
 			m[i][j] = (rand.Float64() - 0.5) * 0.01
 		}
 	}

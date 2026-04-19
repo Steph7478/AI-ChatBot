@@ -7,9 +7,8 @@ type TrainingConfig struct {
 }
 
 type Trainer struct {
-	Model     *Transformer
-	Config    TrainingConfig
-	Optimizer *Adam
+	Model  *Transformer
+	Config TrainingConfig
 }
 
 type Adam struct {

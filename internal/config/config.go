@@ -1,3 +1,4 @@
+// internal/config/config.go
 package config
 
 const (
@@ -7,39 +8,39 @@ const (
 )
 
 const (
-	VocabSize    = 10000
-	EmbeddingDim = 128
-	HiddenDim    = 256
-	NumHeads     = 4
-	NumLayers    = 2
-	MaxSeqLen    = 64
+	VocabSize    = 100
+	EmbeddingDim = 16
+	HiddenDim    = 32
+	NumHeads     = 2
+	NumLayers    = 1
+	MaxSeqLen    = 32
 	Dropout      = 0.1
 )
 
 const (
-	Temperature   = 1.2
-	TopK          = 50
-	MaxTokens     = 100
-	MinConfidence = 0.1
+	Temperature   = 0.8
+	TopK          = 10
+	MaxTokens     = 20
+	MinConfidence = 0.3
 )
 
 const (
-	MinSimilarityScore = 0.8
+	MinSimilarityScore = 0.35
 	ExactWordBonus     = 0.3
 	ContainBonus       = 0.2
-	LengthPenalty      = 0.03
+	LengthPenalty      = 0.02
 )
 
 const (
-	DefaultTemp = 0.9
+	DefaultTemp = 0.8
 	MinTemp     = 0.1
-	MaxTemp     = 2.0
+	MaxTemp     = 1.5
 )
 
 const (
-	LearningRate   = 0.0005
+	LearningRate   = 0.005
 	BatchSize      = 8
-	TrainMaxSeqLen = 64
-	GradientClip   = 0.5
-	Epsilon        = 1e-6
+	TrainMaxSeqLen = 32
+	GradientClip   = 0.1
+	Epsilon        = 1e-7
 )

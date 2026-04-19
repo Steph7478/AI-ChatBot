@@ -1,3 +1,4 @@
+// internal/model/tokenizer.go
 package model
 
 import (
@@ -26,22 +27,11 @@ func detokenize(tokens []neural.Token) string {
 	if len(tokens) == 0 {
 		return ""
 	}
-	result := ""
+	result := make([]byte, 0)
 	for _, t := range tokens {
-		if t.ID >= 65 && t.ID <= 90 {
-			result += string(byte(t.ID))
-		} else if t.ID >= 97 && t.ID <= 122 {
-			result += string(byte(t.ID))
-		} else if t.ID == 32 {
-			result += " "
+		if t.ID >= 32 && t.ID <= 126 {
+			result = append(result, byte(t.ID))
 		}
 	}
-	if len(result) == 0 {
-		for _, t := range tokens {
-			if t.ID >= 32 && t.ID < 127 {
-				result += string(byte(t.ID))
-			}
-		}
-	}
-	return strings.TrimSpace(result)
+	return strings.TrimSpace(string(result))
 }
