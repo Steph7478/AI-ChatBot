@@ -8,43 +8,32 @@ import (
 )
 
 func NewSimpleTextMatcher(conversations map[string]string) *SimpleTextMatcher {
-	return &SimpleTextMatcher{
-		Conversations: conversations,
-	}
+	return &SimpleTextMatcher{Conversations: conversations}
 }
 
 func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
 	input = strings.ToLower(strings.TrimSpace(input))
 	inputWords := strings.Fields(input)
-
 	if len(inputWords) == 0 {
 		return "", 0
 	}
 
-	bestMatch := ""
-	bestScore := 0.0
-
+	bestMatch, bestScore := "", 0.0
 	for question, answer := range m.Conversations {
-		question = strings.ToLower(question)
-		questionWords := strings.Fields(question)
-
+		questionWords := strings.Fields(strings.ToLower(question))
 		score := m.calculateMatchScore(inputWords, questionWords)
-
 		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
 		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
-		lenPenalty := 1.0 - (lenDiff/maxLen)*config.LengthPenalty
-		score = score * lenPenalty
+		score = score * (1.0 - (lenDiff/maxLen)*config.LengthPenalty)
 
 		if score > bestScore {
-			bestScore = score
-			bestMatch = answer
+			bestScore, bestMatch = score, answer
 		}
 	}
 
 	if bestScore < config.MinSimilarityScore {
 		return "", 0
 	}
-
 	return bestMatch, bestScore
 }
 
@@ -61,8 +50,7 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 		for j, w2 := range questionWords {
 			if !matchedInput[i] && !matchedQuestion[j] && w1 == w2 {
 				totalScore += 1.0
-				matchedInput[i] = true
-				matchedQuestion[j] = true
+				matchedInput[i], matchedQuestion[j] = true, true
 				break
 			}
 		}
@@ -81,12 +69,7 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 		}
 	}
 
-	maxPossible := float64(len(questionWords))
-	if maxPossible == 0 {
-		return 0
-	}
-
-	score := totalScore / maxPossible
+	score := totalScore / float64(len(questionWords))
 	if score > 1.0 {
 		score = 1.0
 	}
@@ -95,17 +78,13 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 
 func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]string) string {
 	input = strings.ToLower(strings.TrimSpace(input))
-
 	if mainPhrase, exists := synonyms[input]; exists {
 		return mainPhrase
 	}
-
-	words := strings.Fields(input)
-	for _, word := range words {
+	for _, word := range strings.Fields(input) {
 		if mainPhrase, exists := synonyms[word]; exists {
 			return mainPhrase
 		}
 	}
-
 	return input
 }
