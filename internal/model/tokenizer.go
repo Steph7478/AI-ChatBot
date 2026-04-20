@@ -34,7 +34,7 @@ func getWordID(word string) int {
 	return id
 }
 
-func defaultTokenizer(text string) []int {
+func DefaultTokenizer(text string) []int {
 	if text == "" {
 		return []int{0}
 	}
@@ -54,7 +54,7 @@ func defaultTokenizer(text string) []int {
 	return tokens
 }
 
-func detokenize(tokens []core.Token) string {
+func Detokenize(tokens []core.Token) string {
 	if len(tokens) == 0 {
 		return ""
 	}

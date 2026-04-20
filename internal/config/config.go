@@ -3,6 +3,7 @@ package config
 const (
 	ModelFile         = "data/model.gob"
 	ConversationsFile = "data/conversations.txt"
+	TrainingDataFile  = "data/training_data.txt"
 	PromptsFile       = "data/prompts.txt"
 )
 
@@ -17,10 +18,10 @@ const (
 )
 
 const (
-	Temperature   = 0.9
+	DefaultTemp   = 1.2
 	TopK          = 50
-	MaxTokens     = 30
-	MinConfidence = 0.3
+	MaxTokens     = 50
+	MinConfidence = 0.2
 )
 
 const (
@@ -30,9 +31,8 @@ const (
 )
 
 const (
-	DefaultTemp = 0.9
-	MinTemp     = 0.1
-	MaxTemp     = 2.0
+	MinTemp = 0.1
+	MaxTemp = 2.0
 )
 
 const (

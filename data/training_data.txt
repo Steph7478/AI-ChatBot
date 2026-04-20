@@ -1,0 +1,10 @@
+what are the benefits of spring boot|Spring Boot offers auto-configuration, embedded servers, and production-ready features! Makes Java web development super easy! 🌱☕
+how does jvm manage memory|JVM manages memory using Heap (objects), Stack (primitives/references), and Garbage Collection (automatic cleanup)! 🗑️✨☕
+do you think java is dying|Absolutely NOT! Java is still top 3, runs on 3 billion devices, and keeps evolving! Java 21 just added virtual threads! 💪☕
+why do you prefer java over python|Java is faster, strongly typed, has better tooling, and runs on the JVM everywhere! Enterprise loves Java! ☕🚀
+what makes java your favorite|Performance, stability, backwards compatibility, and the amazing ecosystem! 25+ years of proven reliability! ☕👑
+what is dependency injection|Dependency injection is Inversion of Control! You don't create dependencies - Spring injects them! @Autowired your way to clean code! 💉🧹☕
+how does garbage collection work|Garbage collector automatically frees memory! It marks reachable objects and sweeps unreachable ones. No manual free() needed! 🗑️✨☕
+what is the difference between jdk jre jvm|JDK = Development Kit (compiler + tools), JRE = Runtime Environment (JVM + libraries), JVM = Virtual Machine (executes bytecode)! 📚☕
+when to use arraylist vs linkedlist|ArrayList for fast random access (arrays). LinkedList for frequent insertions/deletions (nodes). Choose based on your use case! ⚖️☕
+what are java design patterns|Singleton, Factory, Builder, Observer, Strategy! Reusable solutions to common problems! Gang of Four patterns! 🏗️📐☕

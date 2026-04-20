@@ -13,27 +13,20 @@ func NewSimpleTextMatcher(conversations map[string]string) *SimpleTextMatcher {
 
 func normalize(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
-	s = strings.TrimRight(s, ".,!?;:")
-	return s
+	return strings.TrimRight(s, ".,!?;:")
 }
 
 func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
-	normalizedInput := normalize(input)
-	inputWords := strings.Fields(normalizedInput)
-
+	inputWords := strings.Fields(normalize(input))
 	if len(inputWords) == 0 {
 		return "", 0
 	}
 
 	bestMatch, bestScore := "", 0.0
 	for question, answer := range m.Conversations {
-		normalizedQuestion := normalize(question)
-		questionWords := strings.Fields(normalizedQuestion)
-
+		questionWords := strings.Fields(normalize(question))
 		score := m.calculateMatchScore(inputWords, questionWords)
-		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
-		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
-		score = score * (1.0 - (lenDiff/maxLen)*config.LengthPenalty)
+		score = m.applyLengthPenalty(score, inputWords, questionWords)
 
 		if score > bestScore {
 			bestScore, bestMatch = score, answer
@@ -43,37 +36,7 @@ func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
 	if bestScore < config.MinSimilarityScore {
 		return "", 0
 	}
-
 	return bestMatch, bestScore * 100
-}
-
-func (m *SimpleTextMatcher) GetMatchScore(input string) float64 {
-	normalizedInput := normalize(input)
-	inputWords := strings.Fields(normalizedInput)
-
-	if len(inputWords) == 0 {
-		return 0
-	}
-
-	bestScore := 0.0
-	for question := range m.Conversations {
-		normalizedQuestion := normalize(question)
-		questionWords := strings.Fields(normalizedQuestion)
-
-		score := m.calculateMatchScore(inputWords, questionWords)
-		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
-		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
-		score = score * (1.0 - (lenDiff/maxLen)*config.LengthPenalty)
-
-		if score > bestScore {
-			bestScore = score
-		}
-	}
-
-	if bestScore < config.MinSimilarityScore {
-		return 0
-	}
-	return bestScore
 }
 
 func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []string) float64 {
@@ -82,62 +45,37 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 	}
 
 	totalScore := 0.0
-	matchedInput := make([]bool, len(inputWords))
 	matchedQuestion := make([]bool, len(questionWords))
 
 	for i, w1 := range inputWords {
 		for j, w2 := range questionWords {
-			if !matchedInput[i] && !matchedQuestion[j] && w1 == w2 {
-				positionBonus := 1.0
-				if len(questionWords) > 1 {
-					expectedPos := float64(j) / float64(len(questionWords)-1)
-					actualPos := float64(i) / float64(len(inputWords)-1)
-					posDiff := math.Abs(expectedPos - actualPos)
-					positionBonus = 1.0 - (posDiff * 0.5)
-				}
-				totalScore += 1.0 * positionBonus
-				matchedInput[i], matchedQuestion[j] = true, true
-				break
-			}
-		}
-	}
-
-	for i, w1 := range inputWords {
-		if matchedInput[i] {
-			continue
-		}
-		for j, w2 := range questionWords {
-			if !matchedQuestion[j] && (strings.Contains(w1, w2) || strings.Contains(w2, w1)) {
-				positionBonus := 1.0
-				if len(questionWords) > 1 {
-					expectedPos := float64(j) / float64(len(questionWords)-1)
-					actualPos := float64(i) / float64(len(inputWords)-1)
-					posDiff := math.Abs(expectedPos - actualPos)
-					positionBonus = 1.0 - (posDiff * 0.3)
-				}
-				totalScore += 0.5 * positionBonus
+			if !matchedQuestion[j] && strings.EqualFold(w1, w2) {
+				posBonus := 1.0 - (math.Abs(float64(i-j))/float64(max(len(inputWords), len(questionWords))))*0.5
+				totalScore += 1.0 * posBonus
 				matchedQuestion[j] = true
 				break
 			}
 		}
 	}
 
-	score := totalScore / float64(len(questionWords))
-	if score > 1.0 {
-		score = 1.0
-	}
-	return score
+	return math.Min(1.0, totalScore/float64(len(questionWords)))
+}
+
+func (m *SimpleTextMatcher) applyLengthPenalty(score float64, inputWords, questionWords []string) float64 {
+	lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
+	maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
+	return score * (1.0 - (lenDiff/maxLen)*config.LengthPenalty)
 }
 
 func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]string) string {
-	normalizedInput := normalize(input)
+	normalized := normalize(input)
 
-	if mainPhrase, exists := synonyms[normalizedInput]; exists {
-		return mainPhrase
+	if main, exists := synonyms[normalized]; exists {
+		return main
 	}
-	for word := range strings.FieldsSeq(normalizedInput) {
-		if mainPhrase, exists := synonyms[word]; exists {
-			return mainPhrase
+	for _, word := range strings.Fields(normalized) {
+		if main, exists := synonyms[word]; exists {
+			return main
 		}
 	}
 	return input

@@ -12,10 +12,61 @@ import (
 
 func (m *Model) LoadAll() {
 	m.loadFile(config.ConversationsFile, m.onPair)
+	m.loadFile(config.TrainingDataFile, m.onTraining)
 	m.loadFile(config.PromptsFile, m.onPrompt)
 }
 
-func LoadVocab(path string) error {
+func (m *Model) loadFile(path string, callback func([]string)) {
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		parts := strings.SplitN(line, "|", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		input := strings.ToLower(strings.TrimSpace(parts[0]))
+		response := strings.TrimSpace(parts[1])
+
+		if input != "" && response != "" {
+			callback([]string{input, response})
+		}
+	}
+}
+
+func (m *Model) onPair(fields []string) {
+	m.Conversations[fields[0]] = fields[1]
+}
+
+func (m *Model) onTraining(fields []string) {
+	m.TrainingData[fields[0]] = fields[1]
+}
+
+func (m *Model) onPrompt(fields []string) {
+	if len(fields) < 2 {
+		return
+	}
+	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
+	synonyms := strings.Split(fields[1], "|")
+	for _, synonym := range synonyms {
+		synonym = strings.ToLower(strings.TrimSpace(synonym))
+		if synonym != "" {
+			m.Synonyms[synonym] = mainPhrase
+		}
+	}
+}
+
+func loadVocab(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -48,65 +99,8 @@ func (m *Model) LoadModel() error {
 	}
 
 	vocabFile := config.ModelFile + ".vocab"
-	if err := LoadVocab(vocabFile); err != nil {
+	if err := loadVocab(vocabFile); err != nil {
 		fmt.Println("No vocab found, will create new one")
 	}
 	return nil
-}
-
-func (m *Model) loadFile(path string, callback func([]string)) {
-	file, err := os.Open(path)
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-
-		separators := []string{"|", ",", ";", "\t", ":"}
-		var idx int = -1
-		var sep string
-
-		for _, s := range separators {
-			idx = strings.Index(line, s)
-			if idx != -1 {
-				sep = s
-				break
-			}
-		}
-
-		if idx == -1 {
-			continue
-		}
-
-		input := strings.ToLower(strings.TrimSpace(line[:idx]))
-		response := strings.TrimSpace(line[idx+len(sep):])
-
-		if input != "" && response != "" {
-			callback([]string{input, response})
-		}
-	}
-}
-
-func (m *Model) onPair(fields []string) {
-	m.Conversations[fields[0]] = fields[1]
-}
-
-func (m *Model) onPrompt(fields []string) {
-	if len(fields) < 2 {
-		return
-	}
-	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
-	synonyms := strings.Split(fields[1], "|")
-	for _, synonym := range synonyms {
-		synonym = strings.ToLower(strings.TrimSpace(synonym))
-		if synonym != "" {
-			m.Synonyms[synonym] = mainPhrase
-		}
-	}
 }
