@@ -129,6 +129,7 @@ edit_conversations() {
 }
 
 # Delete model
+# Delete model
 delete_model() {
     echo
     echo -e "${BOLD}${RED}╔════════════════════════════════════════════╗${NC}"
@@ -142,7 +143,8 @@ delete_model() {
     
     if [ "$confirm" = "yes" ]; then
         rm -f data/model.gob
-        echo -e "  ${GREEN}✅ Model deleted!${NC}"
+        rm -f data/model.gob.vocab
+        echo -e "  ${GREEN}✅ Model and vocab deleted!${NC}"
     else
         echo -e "  ${BLUE}Cancelled${NC}"
     fi

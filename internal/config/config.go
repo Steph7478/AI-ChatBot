@@ -18,8 +18,8 @@ const (
 )
 
 const (
-	DefaultTemp   = 1.2
-	TopK          = 50
+	DefaultTemp   = 0.7
+	TopK          = 40
 	MaxTokens     = 50
 	MinConfidence = 0.2
 )
@@ -36,10 +36,10 @@ const (
 )
 
 const (
-	LearningRate   = 0.01
+	LearningRate   = 0.005
 	BatchSize      = 16
 	TrainMaxSeqLen = 20
 	GradientClip   = 0.5
 	Epsilon        = 1e-7
-	Patience       = 50
+	Patience       = 30
 )
