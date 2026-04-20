@@ -57,8 +57,8 @@ func (m *Model) onPrompt(fields []string) {
 		return
 	}
 	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
-	synonyms := strings.Split(fields[1], "|")
-	for _, synonym := range synonyms {
+	synonyms := strings.SplitSeq(fields[1], "|")
+	for synonym := range synonyms {
 		synonym = strings.ToLower(strings.TrimSpace(synonym))
 		if synonym != "" {
 			m.Synonyms[synonym] = mainPhrase

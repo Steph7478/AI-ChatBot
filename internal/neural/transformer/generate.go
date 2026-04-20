@@ -85,7 +85,7 @@ func (t *Transformer) sample(probs []float64, k int) int {
 	for i := range indices {
 		indices[i] = i
 	}
-	for i := 0; i < k; i++ {
+	for i := range k {
 		maxIdx := i
 		for j := i + 1; j < len(probs); j++ {
 			if probs[indices[j]] > probs[indices[maxIdx]] {

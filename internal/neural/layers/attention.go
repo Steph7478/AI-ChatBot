@@ -33,17 +33,17 @@ func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
 	n, d := len(x), len(x[0])
 
 	s := core.Zeros(n, n)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
+	for i := range n {
+		for j := range n {
 			sum := 0.0
-			for t := 0; t < d; t++ {
+			for t := range d {
 				sum += q[i][t] * k[j][t]
 			}
 			s[i][j] = sum / math.Sqrt(float64(d))
 		}
 	}
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		mx := s[i][0]
 		for j := 1; j < n; j++ {
 			if s[i][j] > mx {
@@ -51,7 +51,7 @@ func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
 			}
 		}
 		sum := 0.0
-		for j := 0; j < n; j++ {
+		for j := range n {
 			s[i][j] = math.Exp(s[i][j] - mx)
 			sum += s[i][j]
 		}
@@ -61,9 +61,9 @@ func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
 	}
 
 	o := core.Zeros(n, d)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			for t := 0; t < d; t++ {
+	for i := range n {
+		for j := range n {
+			for t := range d {
 				o[i][t] += s[i][j] * v[j][t]
 			}
 		}

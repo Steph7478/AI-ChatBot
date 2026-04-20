@@ -48,10 +48,3 @@ func CrossEntropyLoss(logits [][]float64, targets []int) (loss float64, grads []
 	loss /= float64(min(seqLen, len(targets)))
 	return loss, grads
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

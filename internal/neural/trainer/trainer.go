@@ -28,7 +28,7 @@ func (t *Trainer) Train(epochs int, inputs, targets [][]int) float64 {
 	bestLoss := math.MaxFloat64
 	wait := 0
 
-	for epoch := 0; epoch < epochs; epoch++ {
+	for epoch := range epochs {
 		epochLoss := t.trainEpoch(inputs, targets)
 
 		avgLoss := epochLoss / float64(len(inputs))
