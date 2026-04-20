@@ -44,28 +44,6 @@ func (m *Model) loadFile(path string, callback func([]string)) {
 	}
 }
 
-func (m *Model) onPair(fields []string) {
-	m.Conversations[fields[0]] = fields[1]
-}
-
-func (m *Model) onTraining(fields []string) {
-	m.TrainingData[fields[0]] = fields[1]
-}
-
-func (m *Model) onPrompt(fields []string) {
-	if len(fields) < 2 {
-		return
-	}
-	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
-	synonyms := strings.SplitSeq(fields[1], "|")
-	for synonym := range synonyms {
-		synonym = strings.ToLower(strings.TrimSpace(synonym))
-		if synonym != "" {
-			m.Synonyms[synonym] = mainPhrase
-		}
-	}
-}
-
 func loadVocab(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -103,4 +81,26 @@ func (m *Model) LoadModel() error {
 		fmt.Println("No vocab found, will create new one")
 	}
 	return nil
+}
+
+func (m *Model) onPair(fields []string) {
+	m.Conversations[fields[0]] = fields[1]
+}
+
+func (m *Model) onTraining(fields []string) {
+	m.TrainingData[fields[0]] = fields[1]
+}
+
+func (m *Model) onPrompt(fields []string) {
+	if len(fields) < 2 {
+		return
+	}
+	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
+	synonyms := strings.SplitSeq(fields[1], "|")
+	for synonym := range synonyms {
+		synonym = strings.ToLower(strings.TrimSpace(synonym))
+		if synonym != "" {
+			m.Synonyms[synonym] = mainPhrase
+		}
+	}
 }
