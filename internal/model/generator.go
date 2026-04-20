@@ -28,13 +28,13 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 		}
 	}
 
-	if match, score := m.Matcher.FindBestMatch(originalPrompt); match != "" && score > config.MinSimilarityScore {
+	if match, scorePercent := m.Matcher.FindBestMatch(originalPrompt); match != "" && scorePercent > config.MinSimilarityScore*100 {
 		fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
-		fmt.Printf("%s[fuzzy match - %.1f%%]%s\n", gray, score*100, reset)
+		fmt.Printf("%s[fuzzy match - %.1f%%]%s\n", gray, scorePercent, reset)
 		return ResponseResult{
 			Text:       match,
 			Type:       ResponseGenerated,
-			Confidence: score,
+			Confidence: scorePercent / 100,
 		}
 	}
 
@@ -49,13 +49,13 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 				Confidence: 0.95,
 			}
 		}
-		if match, score := m.Matcher.FindBestMatch(resolved); match != "" && score > config.MinSimilarityScore {
+		if match, scorePercent := m.Matcher.FindBestMatch(resolved); match != "" && scorePercent > config.MinSimilarityScore*100 {
 			fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
-			fmt.Printf("%s[synonym fuzzy - %.1f%%]%s\n", gray, score*100, reset)
+			fmt.Printf("%s[synonym fuzzy - %.1f%%]%s\n", gray, scorePercent, reset)
 			return ResponseResult{
 				Text:       match,
 				Type:       ResponseGenerated,
-				Confidence: score,
+				Confidence: scorePercent / 100,
 			}
 		}
 	}

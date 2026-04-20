@@ -77,7 +77,7 @@ func (m *Model) Train(epochs int) {
 		LearningRate: config.LearningRate,
 		BatchSize:    config.BatchSize,
 		Epochs:       epochs,
-		Patience:     3,
+		Patience:     config.Patience,
 	})
 
 	loss := t.Train(epochs, inputs, targets)

@@ -43,7 +43,37 @@ func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
 	if bestScore < config.MinSimilarityScore {
 		return "", 0
 	}
-	return bestMatch, bestScore
+
+	return bestMatch, bestScore * 100
+}
+
+func (m *SimpleTextMatcher) GetMatchScore(input string) float64 {
+	normalizedInput := normalize(input)
+	inputWords := strings.Fields(normalizedInput)
+
+	if len(inputWords) == 0 {
+		return 0
+	}
+
+	bestScore := 0.0
+	for question := range m.Conversations {
+		normalizedQuestion := normalize(question)
+		questionWords := strings.Fields(normalizedQuestion)
+
+		score := m.calculateMatchScore(inputWords, questionWords)
+		lenDiff := math.Abs(float64(len(inputWords) - len(questionWords)))
+		maxLen := math.Max(float64(len(inputWords)), float64(len(questionWords)))
+		score = score * (1.0 - (lenDiff/maxLen)*config.LengthPenalty)
+
+		if score > bestScore {
+			bestScore = score
+		}
+	}
+
+	if bestScore < config.MinSimilarityScore {
+		return 0
+	}
+	return bestScore
 }
 
 func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []string) float64 {
@@ -58,7 +88,14 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 	for i, w1 := range inputWords {
 		for j, w2 := range questionWords {
 			if !matchedInput[i] && !matchedQuestion[j] && w1 == w2 {
-				totalScore += 1.0
+				positionBonus := 1.0
+				if len(questionWords) > 1 {
+					expectedPos := float64(j) / float64(len(questionWords)-1)
+					actualPos := float64(i) / float64(len(inputWords)-1)
+					posDiff := math.Abs(expectedPos - actualPos)
+					positionBonus = 1.0 - (posDiff * 0.5)
+				}
+				totalScore += 1.0 * positionBonus
 				matchedInput[i], matchedQuestion[j] = true, true
 				break
 			}
@@ -71,7 +108,14 @@ func (m *SimpleTextMatcher) calculateMatchScore(inputWords, questionWords []stri
 		}
 		for j, w2 := range questionWords {
 			if !matchedQuestion[j] && (strings.Contains(w1, w2) || strings.Contains(w2, w1)) {
-				totalScore += 0.5
+				positionBonus := 1.0
+				if len(questionWords) > 1 {
+					expectedPos := float64(j) / float64(len(questionWords)-1)
+					actualPos := float64(i) / float64(len(inputWords)-1)
+					posDiff := math.Abs(expectedPos - actualPos)
+					positionBonus = 1.0 - (posDiff * 0.3)
+				}
+				totalScore += 0.5 * positionBonus
 				matchedQuestion[j] = true
 				break
 			}
