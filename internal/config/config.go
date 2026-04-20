@@ -41,5 +41,5 @@ const (
 	TrainMaxSeqLen = 20
 	GradientClip   = 0.5
 	Epsilon        = 1e-7
-	Patience       = 3
+	Patience       = 50
 )
