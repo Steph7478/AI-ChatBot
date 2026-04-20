@@ -25,7 +25,7 @@ const (
 )
 
 const (
-	MinSimilarityScore = 0.8
+	MinSimilarityScore = 0.75
 	ContainBonus       = 0.2
 	LengthPenalty      = 0.02
 )
