@@ -1,0 +1,113 @@
+package transformer
+
+import (
+	"chatbot/internal/neural/layers"
+	"encoding/gob"
+	"fmt"
+	"os"
+)
+
+func init() {
+	gob.Register(&Transformer{})
+	gob.Register(&TransformerBlock{})
+	gob.Register(&layers.MultiHeadAttention{})
+	gob.Register(&layers.FeedForwardLayer{})
+	gob.Register(&layers.EmbeddingLayer{})
+	gob.Register(&layers.OutputLayer{})
+}
+
+func (t *Transformer) Save(path string) error {
+	fmt.Printf("💾 Saving transformer to %s...\n", path)
+
+	// DEBUG: Mostrar amostra dos pesos antes de salvar
+	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
+		// Mostrar vários valores para ver se são diferentes de zero
+		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
+		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][1]: %.6f\n", t.Embedding.Weights[0][1])
+		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][2]: %.6f\n", t.Embedding.Weights[0][2])
+	}
+	if t.Output != nil && len(t.Output.Weights) > 0 && len(t.Output.Weights[0]) > 0 {
+		fmt.Printf("   📊 BEFORE SAVE - Output[0][0]: %.6f\n", t.Output.Weights[0][0])
+		fmt.Printf("   📊 BEFORE SAVE - Output[0][1]: %.6f\n", t.Output.Weights[0][1])
+	}
+
+	// Calcular média dos pesos para ver se são valores treinados
+	if t.Embedding != nil {
+		var sum float64
+		var count int
+		for i := 0; i < 10 && i < len(t.Embedding.Weights); i++ {
+			for j := 0; j < 10 && j < len(t.Embedding.Weights[i]); j++ {
+				sum += t.Embedding.Weights[i][j]
+				count++
+			}
+		}
+		if count > 0 {
+			fmt.Printf("   📊 BEFORE SAVE - Embedding avg (10x10): %.6f\n", sum/float64(count))
+		}
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		fmt.Printf("❌ Create file error: %v\n", err)
+		return err
+	}
+	defer f.Close()
+
+	if err := gob.NewEncoder(f).Encode(t); err != nil {
+		fmt.Printf("❌ Encode error: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("✅ Transformer saved successfully (%d bytes)\n", getFileSize(path))
+	return nil
+}
+
+func (t *Transformer) Load(path string) error {
+	fmt.Printf("📂 Loading transformer from %s...\n", path)
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Printf("⚠️  Open file error: %v\n", err)
+		return err
+	}
+	defer f.Close()
+
+	// Criar um novo transformer temporário para carregar
+	temp := &Transformer{}
+	if err := gob.NewDecoder(f).Decode(temp); err != nil {
+		fmt.Printf("❌ Decode error: %v\n", err)
+		return err
+	}
+
+	// Copiar os dados carregados para o transformer atual
+	t.Embedding = temp.Embedding
+	t.Blocks = temp.Blocks
+	t.Output = temp.Output
+	t.MaxSeqLen = temp.MaxSeqLen
+	t.Dropout = temp.Dropout
+
+	// DEBUG: Mostrar amostra dos pesos depois de carregar
+	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
+		fmt.Printf("   📊 AFTER LOAD - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
+	} else {
+		fmt.Printf("   ⚠️  Embedding weights are EMPTY after load!\n")
+	}
+	if t.Output != nil && len(t.Output.Weights) > 0 && len(t.Output.Weights[0]) > 0 {
+		fmt.Printf("   📊 AFTER LOAD - Output[0][0]: %.6f\n", t.Output.Weights[0][0])
+	} else {
+		fmt.Printf("   ⚠️  Output weights are EMPTY after load!\n")
+	}
+	if len(t.Blocks) > 0 && t.Blocks[0].Attention != nil && len(t.Blocks[0].Attention.WQ) > 0 {
+		fmt.Printf("   📊 AFTER LOAD - Attention WQ[0][0]: %.6f\n", t.Blocks[0].Attention.WQ[0][0])
+	}
+
+	fmt.Printf("✅ Transformer loaded successfully\n")
+	return nil
+}
+
+func getFileSize(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
+}

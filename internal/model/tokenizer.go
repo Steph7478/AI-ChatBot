@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"chatbot/internal/neural"
+	"chatbot/internal/core"
 )
 
 var (
@@ -54,7 +54,7 @@ func defaultTokenizer(text string) []int {
 	return tokens
 }
 
-func detokenize(tokens []neural.Token) string {
+func detokenize(tokens []core.Token) string {
 	if len(tokens) == 0 {
 		return ""
 	}

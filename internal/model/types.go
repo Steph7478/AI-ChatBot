@@ -1,6 +1,8 @@
 package model
 
-import "chatbot/internal/neural"
+import (
+	"chatbot/internal/neural/transformer"
+)
 
 type ResponseResult struct {
 	Text       string
@@ -20,7 +22,7 @@ type SimpleTextMatcher struct {
 }
 
 type Model struct {
-	Brain         *neural.Transformer
+	Brain         *transformer.Transformer
 	Matcher       *SimpleTextMatcher
 	Conversations map[string]string
 	Synonyms      map[string]string

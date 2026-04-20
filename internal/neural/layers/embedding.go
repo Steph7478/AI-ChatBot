@@ -1,12 +1,20 @@
-package neural
+package layers
 
 import (
+	"chatbot/internal/core"
 	"math"
-	"math/rand/v2"
 )
 
+type EmbeddingLayer struct {
+	Weights [][]float64
+	Dim     int
+}
+
 func NewEmbeddingLayer(vocabSize, dim int) *EmbeddingLayer {
-	return &EmbeddingLayer{Weights: newMatrix(vocabSize, dim)}
+	return &EmbeddingLayer{
+		Weights: core.NewMatrix(vocabSize, dim),
+		Dim:     dim,
+	}
 }
 
 func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
@@ -19,7 +27,7 @@ func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
 			out[i] = make([]float64, len(e.Weights[id]))
 			copy(out[i], e.Weights[id])
 		} else {
-			out[i] = make([]float64, len(e.Weights[0]))
+			out[i] = make([]float64, e.Dim)
 		}
 	}
 	return out
@@ -27,13 +35,13 @@ func (e *EmbeddingLayer) Forward(ids []int) [][]float64 {
 
 var peCache = make(map[int][][]float64)
 
-func positionalEncoding(seqLen, dim int) [][]float64 {
+func PositionalEncoding(seqLen, dim int) [][]float64 {
 	if c, ok := peCache[seqLen]; ok && len(c) > 0 && len(c[0]) == dim {
 		return c
 	}
-	pe := zeros(seqLen, dim)
-	for i := range seqLen {
-		for j := range dim {
+	pe := core.Zeros(seqLen, dim)
+	for i := 0; i < seqLen; i++ {
+		for j := 0; j < dim; j++ {
 			if j%2 == 0 {
 				pe[i][j] = math.Sin(float64(i) / math.Pow(10000, float64(j)/float64(dim)))
 			} else {
@@ -43,17 +51,4 @@ func positionalEncoding(seqLen, dim int) [][]float64 {
 	}
 	peCache[seqLen] = pe
 	return pe
-}
-
-func newMatrix(rows, cols int) [][]float64 {
-	if rows == 0 || cols == 0 {
-		return [][]float64{}
-	}
-	m := zeros(rows, cols)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = (rand.Float64() - 0.5) * 0.01
-		}
-	}
-	return m
 }

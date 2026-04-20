@@ -2,14 +2,17 @@ package model
 
 import (
 	"fmt"
+	"os" // ADICIONE este import
 
 	"chatbot/internal/config"
-	"chatbot/internal/neural"
+	"chatbot/internal/core"
+	"chatbot/internal/neural/trainer"
+	"chatbot/internal/neural/transformer"
 )
 
 func NewModel() *Model {
 	m := &Model{
-		Brain: neural.NewTransformer(
+		Brain: transformer.New(
 			config.VocabSize,
 			config.EmbeddingDim,
 			config.HiddenDim,
@@ -24,9 +27,16 @@ func NewModel() *Model {
 
 	m.LoadAll()
 
-	if err := m.LoadModel(); err != nil {
-		fmt.Println("No saved model found, starting fresh")
+	fmt.Printf("Looking for model at: %s\n", config.ModelFile)
+
+	if err := m.Brain.Load(config.ModelFile); err != nil {
+		fmt.Printf("No saved model found, starting fresh: %v\n", err)
+	} else {
+		fmt.Println("✅ Model loaded successfully! Continuing from previous training.")
 	}
+
+	// DEBUG: Mostrar estatísticas dos pesos após load
+	m.Brain.PrintWeightStats()
 
 	m.Matcher = NewSimpleTextMatcher(m.Conversations)
 
@@ -66,15 +76,30 @@ func (m *Model) Train(epochs int) {
 		return
 	}
 
-	trainer := neural.NewTrainer(m.Brain, neural.TrainingConfig{
+	t := trainer.New(m.Brain, core.TrainingConfig{
 		LearningRate: config.LearningRate,
 		BatchSize:    config.BatchSize,
 		Epochs:       epochs,
 		Patience:     3,
 	})
 
-	loss := trainer.Train(epochs, inputs, targets)
+	loss := t.Train(epochs, inputs, targets)
 	fmt.Printf("Training completed! Final loss: %.4f\n", loss)
 
-	m.SaveModel()
+	// DEBUG: Mostrar estatísticas dos pesos ANTES de salvar
+	fmt.Println("\n📊 Weight stats BEFORE saving:")
+	m.Brain.PrintWeightStats()
+
+	fmt.Printf("💾 Saving model to %s...\n", config.ModelFile)
+	if err := m.Brain.Save(config.ModelFile); err != nil {
+		fmt.Printf("❌ Error saving model: %v\n", err)
+	} else {
+		fmt.Println("✅ Model saved successfully!")
+
+		// Verificar se o arquivo foi criado
+		if info, err := os.Stat(config.ModelFile); err == nil {
+			fmt.Printf("   File size: %d bytes\n", info.Size())
+			fmt.Printf("   Modified: %s\n", info.ModTime())
+		}
+	}
 }

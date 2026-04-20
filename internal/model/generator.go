@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"chatbot/internal/config"
-	"chatbot/internal/neural"
+	"chatbot/internal/core"
 )
 
 const (
@@ -110,7 +110,7 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 }
 
 func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
-	cfg := neural.InferenceConfig{
+	cfg := core.InferenceConfig{
 		Temperature: temp,
 		TopK:        config.TopK,
 		MaxTokens:   config.MaxTokens,
