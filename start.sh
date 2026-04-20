@@ -27,8 +27,8 @@ show_menu() {
     echo
     echo -e "    ${GREEN}1)${NC} 🚀 Start Chatbot"
     echo -e "    ${GREEN}2)${NC} 📊 Show Statistics"
-    echo -e "    ${GREEN}3)${NC} ✏️  Edit conversations.txt"
-    echo -e "    ${GREEN}4)${NC} 🗑️  Delete Model (reset learning)"
+    echo -e "    ${GREEN}3)${NC} ✏️ Edit conversations.txt"
+    echo -e "    ${GREEN}4)${NC} 🗑️ Delete Model (reset learning)"
     echo -e "    ${GREEN}5)${NC} 🧠 Train Neural Network"
     echo -e "    ${GREEN}6)${NC} 🔧 Recompile"
     echo -e "    ${GREEN}7)${NC} ❓ Show Help"
