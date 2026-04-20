@@ -151,6 +151,7 @@ delete_model() {
 }
 
 # Train model
+# Train model
 train_model() {
     echo
     echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════╗${NC}"
@@ -191,15 +192,7 @@ train_model() {
     echo
     
     ./chatbot -train "$epochs"
-    
-    if [ $? -eq 0 ]; then
-        echo
-        echo -e "  ${GREEN}✅ Training completed successfully!${NC}"
-    else
-        echo
-        echo -e "  ${RED}❌ Training failed!${NC}"
-    fi
-    
+
     read -p "  Press Enter to continue..."
 }
 

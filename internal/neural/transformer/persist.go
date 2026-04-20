@@ -80,20 +80,6 @@ func (t *Transformer) Load(path string) error {
 	t.MaxSeqLen = temp.MaxSeqLen
 	t.Dropout = temp.Dropout
 
-	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
-		fmt.Printf("   📊 AFTER LOAD - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
-	} else {
-		fmt.Printf("   ⚠️  Embedding weights are EMPTY after load!\n")
-	}
-	if t.Output != nil && len(t.Output.Weights) > 0 && len(t.Output.Weights[0]) > 0 {
-		fmt.Printf("   📊 AFTER LOAD - Output[0][0]: %.6f\n", t.Output.Weights[0][0])
-	} else {
-		fmt.Printf("   ⚠️  Output weights are EMPTY after load!\n")
-	}
-	if len(t.Blocks) > 0 && t.Blocks[0].Attention != nil && len(t.Blocks[0].Attention.WQ) > 0 {
-		fmt.Printf("   📊 AFTER LOAD - Attention WQ[0][0]: %.6f\n", t.Blocks[0].Attention.WQ[0][0])
-	}
-
 	fmt.Printf("✅ Transformer loaded successfully\n")
 	return nil
 }

@@ -35,8 +35,6 @@ func NewModel() *Model {
 		fmt.Println("✅ Model loaded successfully! Continuing from previous training.")
 	}
 
-	m.Brain.PrintWeightStats()
-
 	m.Matcher = NewSimpleTextMatcher(m.Conversations)
 
 	return m
