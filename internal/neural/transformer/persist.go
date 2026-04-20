@@ -19,16 +19,6 @@ func init() {
 func (t *Transformer) Save(path string) error {
 	fmt.Printf("💾 Saving transformer to %s...\n", path)
 
-	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
-		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
-		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][1]: %.6f\n", t.Embedding.Weights[0][1])
-		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][2]: %.6f\n", t.Embedding.Weights[0][2])
-	}
-	if t.Output != nil && len(t.Output.Weights) > 0 && len(t.Output.Weights[0]) > 0 {
-		fmt.Printf("   📊 BEFORE SAVE - Output[0][0]: %.6f\n", t.Output.Weights[0][0])
-		fmt.Printf("   📊 BEFORE SAVE - Output[0][1]: %.6f\n", t.Output.Weights[0][1])
-	}
-
 	if t.Embedding != nil {
 		var sum float64
 		var count int
@@ -37,9 +27,6 @@ func (t *Transformer) Save(path string) error {
 				sum += t.Embedding.Weights[i][j]
 				count++
 			}
-		}
-		if count > 0 {
-			fmt.Printf("   📊 BEFORE SAVE - Embedding avg (10x10): %.6f\n", sum/float64(count))
 		}
 	}
 
