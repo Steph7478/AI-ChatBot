@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"os" // ADICIONE este import
+	"os"
 
 	"chatbot/internal/config"
 	"chatbot/internal/core"
@@ -35,7 +35,6 @@ func NewModel() *Model {
 		fmt.Println("✅ Model loaded successfully! Continuing from previous training.")
 	}
 
-	// DEBUG: Mostrar estatísticas dos pesos após load
 	m.Brain.PrintWeightStats()
 
 	m.Matcher = NewSimpleTextMatcher(m.Conversations)
@@ -86,7 +85,6 @@ func (m *Model) Train(epochs int) {
 	loss := t.Train(epochs, inputs, targets)
 	fmt.Printf("Training completed! Final loss: %.4f\n", loss)
 
-	// DEBUG: Mostrar estatísticas dos pesos ANTES de salvar
 	fmt.Println("\n📊 Weight stats BEFORE saving:")
 	m.Brain.PrintWeightStats()
 
@@ -96,7 +94,6 @@ func (m *Model) Train(epochs int) {
 	} else {
 		fmt.Println("✅ Model saved successfully!")
 
-		// Verificar se o arquivo foi criado
 		if info, err := os.Stat(config.ModelFile); err == nil {
 			fmt.Printf("   File size: %d bytes\n", info.Size())
 			fmt.Printf("   Modified: %s\n", info.ModTime())

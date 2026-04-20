@@ -19,9 +19,7 @@ func init() {
 func (t *Transformer) Save(path string) error {
 	fmt.Printf("💾 Saving transformer to %s...\n", path)
 
-	// DEBUG: Mostrar amostra dos pesos antes de salvar
 	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
-		// Mostrar vários valores para ver se são diferentes de zero
 		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
 		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][1]: %.6f\n", t.Embedding.Weights[0][1])
 		fmt.Printf("   📊 BEFORE SAVE - Embedding[0][2]: %.6f\n", t.Embedding.Weights[0][2])
@@ -31,7 +29,6 @@ func (t *Transformer) Save(path string) error {
 		fmt.Printf("   📊 BEFORE SAVE - Output[0][1]: %.6f\n", t.Output.Weights[0][1])
 	}
 
-	// Calcular média dos pesos para ver se são valores treinados
 	if t.Embedding != nil {
 		var sum float64
 		var count int
@@ -71,21 +68,18 @@ func (t *Transformer) Load(path string) error {
 	}
 	defer f.Close()
 
-	// Criar um novo transformer temporário para carregar
 	temp := &Transformer{}
 	if err := gob.NewDecoder(f).Decode(temp); err != nil {
 		fmt.Printf("❌ Decode error: %v\n", err)
 		return err
 	}
 
-	// Copiar os dados carregados para o transformer atual
 	t.Embedding = temp.Embedding
 	t.Blocks = temp.Blocks
 	t.Output = temp.Output
 	t.MaxSeqLen = temp.MaxSeqLen
 	t.Dropout = temp.Dropout
 
-	// DEBUG: Mostrar amostra dos pesos depois de carregar
 	if t.Embedding != nil && len(t.Embedding.Weights) > 0 && len(t.Embedding.Weights[0]) > 0 {
 		fmt.Printf("   📊 AFTER LOAD - Embedding[0][0]: %.6f\n", t.Embedding.Weights[0][0])
 	} else {

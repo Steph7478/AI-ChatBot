@@ -46,7 +46,6 @@ func (h *CommandHandler) Handle(input string) bool {
 	case input == "/train":
 		fmt.Println("🧠 Starting training with 10 epochs...")
 		h.model.Train(10)
-		h.model.SaveModel()
 		fmt.Println("✅ Training complete!")
 
 	default:

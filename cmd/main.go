@@ -22,7 +22,6 @@ func main() {
 	if *trainFlag > 0 {
 		fmt.Printf("🧠 Training model for %d epochs...\n", *trainFlag)
 		m.Train(*trainFlag)
-		m.SaveModel()
 		fmt.Println("✅ Training complete! Model saved.")
 		return
 	}
