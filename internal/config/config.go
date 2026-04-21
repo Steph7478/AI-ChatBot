@@ -18,10 +18,10 @@ const (
 )
 
 const (
-	DefaultTemp   = 0.7
-	TopK          = 30
+	DefaultTemp   = 0.5
+	TopK          = 20
 	MaxTokens     = 30
-	MinConfidence = 0.2
+	MinConfidence = 0.15
 )
 
 const (

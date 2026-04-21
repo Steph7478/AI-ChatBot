@@ -1,11 +1,12 @@
 package main
 
 import (
-	"chatbot/internal/config"
-	"chatbot/internal/model"
 	"fmt"
 	"os"
 	"strings"
+
+	"chatbot/internal/config"
+	"chatbot/internal/model"
 )
 
 type CommandHandler struct {
@@ -34,13 +35,19 @@ func (h *CommandHandler) Handle(input string) bool {
 		fmt.Printf("   Hidden dim: %d\n", config.HiddenDim)
 		fmt.Printf("   Num layers: %d\n", config.NumLayers)
 		fmt.Printf("   Num heads: %d\n", config.NumHeads)
+		fmt.Printf("   Training data: %d\n", len(h.model.TrainingData))
 		fmt.Printf("   Conversations: %d\n", len(h.model.Conversations))
 
 	case strings.HasPrefix(input, "/temp"):
 		var t float64
-		fmt.Sscanf(input, "/temp %f", &t)
-		*h.temp = clamp(t, config.MinTemp, config.MaxTemp)
-		fmt.Printf("🌡️ Temperature: %.1f\n", *h.temp)
+		n, _ := fmt.Sscanf(input, "/temp %f", &t)
+		if n == 1 {
+			*h.temp = clamp(t, config.MinTemp, config.MaxTemp)
+			fmt.Printf("🌡️ Temperature set to: %.1f\n", *h.temp)
+		} else {
+			fmt.Printf("🌡️ Current temperature: %.1f (Default: %.1f)\n", *h.temp, config.DefaultTemp)
+			fmt.Println("   Usage: /temp 0.5  (values from 0.1 to 2.0)")
+		}
 
 	case input == "/train":
 		fmt.Println("🧠 Starting training with 10 epochs...")
