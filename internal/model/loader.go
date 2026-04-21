@@ -91,15 +91,14 @@ func (m *Model) onTraining(fields []string) {
 }
 
 func (m *Model) onPrompt(fields []string) {
-	if len(fields) < 2 {
-		return
-	}
-	mainPhrase := strings.ToLower(strings.TrimSpace(fields[0]))
-	synonyms := strings.SplitSeq(fields[1], "|")
-	for synonym := range synonyms {
+	allParts := strings.Split(fields[1], "|")
+	targetQuestion := strings.ToLower(strings.TrimSpace(allParts[len(allParts)-1]))
+	synonyms := append([]string{fields[0]}, allParts[:len(allParts)-1]...)
+
+	for _, synonym := range synonyms {
 		synonym = strings.ToLower(strings.TrimSpace(synonym))
-		if synonym != "" {
-			m.Synonyms[synonym] = mainPhrase
+		if synonym != "" && targetQuestion != "" {
+			m.Synonyms[synonym] = targetQuestion
 		}
 	}
 }

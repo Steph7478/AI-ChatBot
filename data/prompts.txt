@@ -1,15 +1,14 @@
-hi|hi|hello|hey|hola|sup|howdy|greetings|good day
-goodbye|goodbye|bye|see you later|cya|farewell|take care
-thanks|thanks|thank you|appreciate it|much obliged
-java love|java is great|i love java|java rocks|java is awesome|java is best
-python hate|python is slow|python is bad|i hate python
-joke|tell me a joke|make me laugh|say something funny|another joke|tell me another joke|java joke
-what is java|what is java|define java|explain java|tell me about java
-jvm|what is jvm|explain jvm|how does jvm work|jvm architecture
-spring|what is spring|spring boot|what is spring boot|spring framework
-collections|what are collections|java collections|collections framework
-java 8|java 8 features|what is java 8|java 8 lambda
-java 17|java 17|java 17 features|what is new in java 17
-java 21|java 21|virtual threads|project loom
-oop|object oriented programming|oop concepts|oop in java
-multithreading|multithreading|concurrency|threads in java
+hi|hello|hey|hola|sup|howdy|greetings|good day|hi
+goodbye|bye|see you later|cya|farewell|take care|goodbye
+thanks|thank you|appreciate it|much obliged|thanks
+java love|java is great|i love java|java rocks|java is awesome|java is best|what is your favorite language
+python hate|python is slow|python is bad|i hate python|python is slow
+joke|tell me a joke|make me laugh|say something funny|another joke|tell me another joke|java joke|tell me a joke
+jvm|explain jvm|how does jvm work|jvm architecture|what is jvm
+spring|spring boot|what is spring boot|spring framework|what is spring boot
+collections|java collections|collections framework|what are collections in java
+java 8|java 8 features|what is java 8|java 8 lambda|java 8 features
+java 17|java 17 features|what is new in java 17|java 17 features
+java 21|virtual threads|project loom|java 21
+oop|object oriented programming|oop concepts|oop in java|what is oop in java
+multithreading|concurrency|threads in java|what is multithreading in java
