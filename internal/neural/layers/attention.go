@@ -48,7 +48,7 @@ func (m *MultiHeadAttention) Forward(x [][]float64) [][]float64 {
 			s[i][j] = math.Exp(s[i][j] - mx)
 			sum += s[i][j]
 		}
-		for j := 0; j < n; j++ {
+		for j := range n {
 			s[i][j] /= sum
 		}
 	}

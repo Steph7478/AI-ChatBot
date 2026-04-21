@@ -1,12 +1,11 @@
-package app
+package main
 
 import (
+	"chatbot/internal/config"
+	"chatbot/internal/model"
 	"fmt"
 	"os"
 	"strings"
-
-	"chatbot/internal/config"
-	"chatbot/internal/model"
 )
 
 type CommandHandler struct {

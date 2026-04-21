@@ -2,14 +2,12 @@ package main
 
 import (
 	"bufio"
+	"chatbot/internal/config"
+	"chatbot/internal/model"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
-
-	"chatbot/internal/app"
-	"chatbot/internal/config"
-	"chatbot/internal/model"
 )
 
 func main() {
@@ -28,13 +26,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	temp := config.DefaultTemp
 
-	cmdHandler := app.NewCommandHandler(m, &temp)
-
-	fmt.Println("🧠 Neural Chatbot")
-	fmt.Println(strings.Repeat("=", 50))
-	fmt.Printf("\n📊 Ready | Temp: %.1f\n", temp)
-	fmt.Println("💬 Commands: /quit, /stats, /temp N, /save, /train")
-	fmt.Println(strings.Repeat("=", 50))
+	cmdHandler := NewCommandHandler(m, &temp)
 
 	for {
 		fmt.Print("\n\033[34mYou: ")
