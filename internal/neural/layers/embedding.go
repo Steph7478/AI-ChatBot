@@ -5,11 +5,6 @@ import (
 	"math"
 )
 
-type EmbeddingLayer struct {
-	Weights [][]float64
-	Dim     int
-}
-
 func NewEmbeddingLayer(vocabSize, dim int) *EmbeddingLayer {
 	return &EmbeddingLayer{
 		Weights: core.NewMatrix(vocabSize, dim),

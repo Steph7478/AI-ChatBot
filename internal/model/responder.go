@@ -19,41 +19,70 @@ func (m *Model) GenerateResponse(prompt string, temp float64, scanner *bufio.Sca
 	originalPrompt := prompt
 
 	if response, exists := m.Conversations[originalPrompt]; exists {
-		m.printResponse(response, "exact match")
-		return ResponseResult{Text: response, Type: ResponseGenerated, Confidence: 0.95}
+		fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
+		fmt.Printf("%s[exact match]%s\n", gray, reset)
+		return ResponseResult{Text: response, IsFallback: false, Confidence: 0.95}
 	}
 
 	if match, score := m.Matcher.FindBestMatch(originalPrompt); match != "" && score > config.MinSimilarityScore*100 {
-		m.printResponse(match, fmt.Sprintf("fuzzy match - %.1f%%", score))
-		return ResponseResult{Text: match, Type: ResponseGenerated, Confidence: score / 100}
+		fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
+		fmt.Printf("%s[fuzzy match - %.1f%%]%s\n", gray, score, reset)
+		return ResponseResult{Text: match, IsFallback: false, Confidence: score / 100}
 	}
 
 	resolved := m.Matcher.ResolveSynonyms(originalPrompt, m.Synonyms)
 	if resolved != originalPrompt {
 		if response, exists := m.Conversations[resolved]; exists {
-			m.printResponse(response, "synonym match")
-			return ResponseResult{Text: response, Type: ResponseGenerated, Confidence: 0.95}
+			fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
+			fmt.Printf("%s[synonym match]%s\n", gray, reset)
+			return ResponseResult{Text: response, IsFallback: false, Confidence: 0.95}
 		}
 		if match, score := m.Matcher.FindBestMatch(resolved); match != "" && score > config.MinSimilarityScore*100 {
-			m.printResponse(match, fmt.Sprintf("synonym fuzzy - %.1f%%", score))
-			return ResponseResult{Text: match, Type: ResponseGenerated, Confidence: score / 100}
+			fmt.Printf("%sBot: %s%s\n", cyan, match, reset)
+			fmt.Printf("%s[synonym fuzzy - %.1f%%]%s\n", gray, score, reset)
+			return ResponseResult{Text: match, IsFallback: false, Confidence: score / 100}
 		}
 	}
 
 	response, isFallback := m.generateFromNeural(originalPrompt, temp)
 
+	fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
+
 	if isFallback {
-		m.handleFallback(originalPrompt, response, scanner)
-		return ResponseResult{Text: response, Type: ResponseFallback, Confidence: 0}
+		fmt.Printf("%s[fallback - please teach me]%s\n", gray, reset)
+		fmt.Print("📝 Please teach me the correct response: ")
+		scanner.Scan()
+		correct := strings.TrimSpace(scanner.Text())
+		if correct != "" {
+			m.LearnForTraining(prompt, correct)
+			fmt.Println("✅ Thanks for teaching me! 🧠")
+		} else {
+			fmt.Println("❌ No response saved.")
+		}
+		return ResponseResult{Text: response, IsFallback: true, Confidence: 0}
 	}
 
-	m.handleNeuralResponse(originalPrompt, response, scanner)
-	return ResponseResult{Text: response, Type: ResponseGenerated, Confidence: 0.8}
-}
+	fmt.Printf("%s[generated via neural]%s\n", gray, reset)
+	fmt.Print("❓ Was this response useful? (y/n): ")
+	scanner.Scan()
+	answer := strings.ToLower(strings.TrimSpace(scanner.Text()))
 
-func (m *Model) printResponse(response, matchType string) {
-	fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
-	fmt.Printf("%s[%s]%s\n", gray, matchType, reset)
+	if answer == "y" || answer == "yes" {
+		m.LearnForTraining(prompt, response)
+		fmt.Println("✅ Thanks! I'll remember that! 🧠")
+	} else {
+		fmt.Print("📝 What would be the correct response? ")
+		scanner.Scan()
+		correct := strings.TrimSpace(scanner.Text())
+		if correct != "" {
+			m.LearnForTraining(prompt, correct)
+			fmt.Println("✅ Thanks for teaching me! 🧠")
+		} else {
+			fmt.Println("❌ No response saved.")
+		}
+	}
+
+	return ResponseResult{Text: response, IsFallback: false, Confidence: 0.8}
 }
 
 func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
@@ -82,43 +111,6 @@ func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
 	}
 
 	return response, false
-}
-
-func (m *Model) handleFallback(prompt, response string, scanner *bufio.Scanner) {
-	fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
-	fmt.Printf("%s[fallback - please teach me]%s\n", gray, reset)
-	fmt.Print("📝 Please teach me the correct response: ")
-	scanner.Scan()
-	correct := strings.TrimSpace(scanner.Text())
-	if correct != "" {
-		m.LearnForTraining(prompt, correct)
-		fmt.Println("✅ Thanks for teaching me! 🧠")
-	} else {
-		fmt.Println("❌ No response saved.")
-	}
-}
-
-func (m *Model) handleNeuralResponse(prompt, response string, scanner *bufio.Scanner) {
-	fmt.Printf("%sBot: %s%s\n", cyan, response, reset)
-	fmt.Printf("%s[generated via neural]%s\n", gray, reset)
-	fmt.Print("❓ Was this response useful? (y/n): ")
-	scanner.Scan()
-	answer := strings.ToLower(strings.TrimSpace(scanner.Text()))
-
-	if answer == "y" || answer == "yes" {
-		m.LearnForTraining(prompt, response)
-		fmt.Println("✅ Thanks! I'll remember that! 🧠")
-	} else {
-		fmt.Print("📝 What would be the correct response? ")
-		scanner.Scan()
-		correct := strings.TrimSpace(scanner.Text())
-		if correct != "" {
-			m.LearnForTraining(prompt, correct)
-			fmt.Println("✅ Thanks for teaching me! 🧠")
-		} else {
-			fmt.Println("❌ No response saved.")
-		}
-	}
 }
 
 func (m *Model) LearnForTraining(input, response string) {

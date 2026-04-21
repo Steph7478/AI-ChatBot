@@ -2,10 +2,6 @@ package layers
 
 import "chatbot/internal/core"
 
-type FeedForwardLayer struct {
-	W1, W2 [][]float64
-}
-
 func NewFeedForwardLayer(inputDim, hiddenDim int) *FeedForwardLayer {
 	return &FeedForwardLayer{
 		W1: core.NewMatrix(inputDim, hiddenDim),

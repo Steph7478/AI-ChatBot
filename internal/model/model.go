@@ -1,10 +1,9 @@
 package model
 
 import (
-	"fmt"
-
 	"chatbot/internal/config"
 	"chatbot/internal/neural/transformer"
+	"fmt"
 )
 
 func NewModel() *Model {
@@ -24,14 +23,10 @@ func NewModel() *Model {
 	}
 
 	m.LoadAll()
-
 	fmt.Printf("Looking for model at: %s\n", config.ModelFile)
-	if err := m.LoadModel(); err != nil {
-		fmt.Printf("No saved model found, starting fresh: %v\n", err)
-	} else {
-		fmt.Println("✅ Model loaded successfully!")
-	}
 
-	m.Matcher = NewSimpleTextMatcher(m.Conversations)
+	m.Matcher = &SimpleTextMatcher{
+		Conversations: m.Conversations,
+	}
 	return m
 }

@@ -2,10 +2,6 @@ package layers
 
 import "chatbot/internal/core"
 
-type OutputLayer struct {
-	Weights [][]float64
-}
-
 func NewOutputLayer(inputDim, outputDim int) *OutputLayer {
 	return &OutputLayer{
 		Weights: core.NewMatrix(inputDim, outputDim),

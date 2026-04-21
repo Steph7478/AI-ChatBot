@@ -5,13 +5,6 @@ import (
 	"math"
 )
 
-type MultiHeadAttention struct {
-	NumHeads   int
-	HeadDim    int
-	WQ, WK, WV [][]float64
-	WO         [][]float64
-}
-
 func NewMultiHeadAttention(embedDim, numHeads int) *MultiHeadAttention {
 	headDim := embedDim / numHeads
 	return &MultiHeadAttention{

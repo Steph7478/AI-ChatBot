@@ -19,17 +19,6 @@ func init() {
 func (t *Transformer) Save(path string) error {
 	fmt.Printf("💾 Saving transformer to %s...\n", path)
 
-	if t.Embedding != nil {
-		var sum float64
-		var count int
-		for i := 0; i < 10 && i < len(t.Embedding.Weights); i++ {
-			for j := 0; j < 10 && j < len(t.Embedding.Weights[i]); j++ {
-				sum += t.Embedding.Weights[i][j]
-				count++
-			}
-		}
-	}
-
 	f, err := os.Create(path)
 	if err != nil {
 		fmt.Printf("❌ Create file error: %v\n", err)

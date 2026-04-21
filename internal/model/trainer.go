@@ -61,9 +61,6 @@ func (m *Model) prepareTrainingData() ([][]int, [][]int) {
 }
 
 func (m *Model) saveTrainingResults() {
-	fmt.Println("\n📊 Weight stats BEFORE saving:")
-	m.Brain.PrintWeightStats()
-
 	if err := m.SaveModel(); err != nil {
 		fmt.Printf("❌ Error saving: %v\n", err)
 		return

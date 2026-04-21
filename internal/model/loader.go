@@ -70,7 +70,6 @@ func loadVocab(path string) error {
 
 	return nil
 }
-
 func (m *Model) LoadModel() error {
 	if err := m.Brain.Load(config.ModelFile); err != nil {
 		return err
@@ -78,11 +77,11 @@ func (m *Model) LoadModel() error {
 
 	vocabFile := config.ModelFile + ".vocab"
 	if err := loadVocab(vocabFile); err != nil {
-		fmt.Println("No vocab found, will create new one")
+		fmt.Printf("⚠️ Vocab file not found: %v\n", err)
+		fmt.Println("Creating new vocabulary...")
 	}
 	return nil
 }
-
 func (m *Model) onPair(fields []string) {
 	m.Conversations[fields[0]] = fields[1]
 }

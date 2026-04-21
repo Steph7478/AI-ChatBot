@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 
 	m := model.NewModel()
-	m.LoadAll()
+	m.LoadModel()
 
 	if *trainFlag > 0 {
 		fmt.Printf("🧠 Training model for %d epochs...\n", *trainFlag)

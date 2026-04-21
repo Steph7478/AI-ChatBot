@@ -7,15 +7,6 @@ import (
 	"chatbot/internal/config"
 )
 
-func NewSimpleTextMatcher(conversations map[string]string) *SimpleTextMatcher {
-	return &SimpleTextMatcher{Conversations: conversations}
-}
-
-func normalize(s string) string {
-	s = strings.ToLower(strings.TrimSpace(s))
-	return strings.TrimRight(s, ".,!?;:")
-}
-
 func (m *SimpleTextMatcher) FindBestMatch(input string) (string, float64) {
 	inputWords := strings.Fields(normalize(input))
 	if len(inputWords) == 0 {
@@ -79,4 +70,9 @@ func (m *SimpleTextMatcher) ResolveSynonyms(input string, synonyms map[string]st
 		}
 	}
 	return input
+}
+
+func normalize(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	return strings.TrimRight(s, ".,!?;:")
 }

@@ -9,11 +9,6 @@ import (
 	"chatbot/internal/neural/transformer"
 )
 
-type Trainer struct {
-	Model  *transformer.Transformer
-	Config core.TrainingConfig
-}
-
 func New(model *transformer.Transformer, cfg core.TrainingConfig) *Trainer {
 	return &Trainer{Model: model, Config: cfg}
 }
