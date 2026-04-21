@@ -19,8 +19,8 @@ const (
 
 const (
 	DefaultTemp   = 0.7
-	TopK          = 40
-	MaxTokens     = 50
+	TopK          = 30
+	MaxTokens     = 30
 	MinConfidence = 0.2
 )
 

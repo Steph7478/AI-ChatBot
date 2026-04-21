@@ -93,6 +93,11 @@ func (m *Model) generateFromNeural(prompt string, temp float64) (string, bool) {
 	}
 
 	resp := m.Brain.Generate(prompt, DefaultTokenizer, cfg)
+
+	if resp.Confidence < config.MinConfidence {
+		return "I need more training to answer this properly.", true
+	}
+
 	response := Detokenize(resp.Tokens)
 
 	words := strings.Fields(response)

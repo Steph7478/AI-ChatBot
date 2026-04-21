@@ -59,12 +59,11 @@ func (t *Transformer) Generate(input string, tokenizer func(string) []int, cfg c
 		return core.Response{}
 	}
 
-	confidence := tokens[len(tokens)-1].Prob
+	sum := 0.0
 	for _, t := range tokens {
-		if t.Prob < confidence {
-			confidence = t.Prob
-		}
+		sum += t.Prob
 	}
+	confidence := sum / float64(len(tokens))
 
 	return core.Response{Tokens: tokens, Confidence: confidence}
 }

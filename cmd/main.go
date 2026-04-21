@@ -24,9 +24,9 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
-	temp := config.DefaultTemp
+	currentTemp := float64(config.DefaultTemp)
 
-	cmdHandler := NewCommandHandler(m, &temp)
+	cmdHandler := NewCommandHandler(m, &currentTemp)
 
 	for {
 		fmt.Print("\n\033[34mYou: ")
@@ -46,6 +46,6 @@ func main() {
 			continue
 		}
 
-		m.GenerateResponse(input, temp, scanner)
+		m.GenerateResponse(input, currentTemp, scanner)
 	}
 }
